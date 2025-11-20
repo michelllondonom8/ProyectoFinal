@@ -1,0 +1,41 @@
+<RCC>
+    <qresource prefix="/">
+        <file>images/Nivel2_fondo.jpeg</file>
+        <file>images/Nivel3_fondo.jpeg</file>
+        <file>images/portada.jpeg</file>
+
+        <file>sounds/batalla.mp3</file>
+
+        <file>images/Fondo1.jpg</file>
+
+        <file>images/player_attack_01.png</file>
+        <file>images/player_attack_02.png</file>
+
+        <file>images/player_death_01.png</file>
+        <file>images/player_death_02.png</file>
+
+        <file>images/idle_01.jpeg</file>
+        <file>images/idle_02.jpeg</file>
+
+        <file>images/player_jump.png</file>
+
+        <file>images/player_walk_01.png</file>
+        <file>images/player_walk_02.png</file>
+        <file>images/player_walk_03.png</file>
+
+        <file>images/rock_0.png</file>
+        <file>images/rock_1.png</file>
+        <file>images/rock_2.png</file>
+
+        <file>images/explosion_0.png</file>
+        <file>images/explosion_1.png</file>
+        <file>images/explosion_2.png</file>
+
+        <file>images/pillar_anim_0.png</file>
+        <file>images/pillar_anim_1.png</file>
+        <file>images/pillar_anim_2.png</file>
+
+        <file>sounds/rock_fall_1.wav</file>
+        <file>sounds/pillar_crash_1.wav</file>
+    </qresource>
+</RCC>
