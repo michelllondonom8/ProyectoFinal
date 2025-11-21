@@ -82,3 +82,5 @@ private:
 };
 
 #endif // ENEMIGO_H
+
+#endif // ENEMIGO_H

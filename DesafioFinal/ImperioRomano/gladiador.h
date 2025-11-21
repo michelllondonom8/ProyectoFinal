@@ -96,3 +96,4 @@ private:
 };
 
 #endif // GLADIADOR_H
+
