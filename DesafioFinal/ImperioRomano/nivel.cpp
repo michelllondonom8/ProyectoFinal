@@ -150,7 +150,9 @@ void Nivel::keyReleaseEvent(QKeyEvent *event)
 void Nivel::finalizarNivel(bool exitoso)
 {
     nivelActivo = false;
-    timerJuego->stop();
+    if (timerJuego) {
+        timerJuego->stop();
+    }
 
     if (exitoso) {
         emit nivelCompletado(numeroNivel);

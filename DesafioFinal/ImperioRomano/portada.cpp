@@ -201,26 +201,19 @@ void Portada::mostrarNivel(int numero)
 
 void Portada::avanzarNivel(int numero)
 {
-    // Obtener referencia al nivel actual para limpiarlo
     Nivel *nivelAnterior = qobject_cast<Nivel*>(sender());
-
     if (numero < 3) {
-        // Cerrar nivel anterior
         if (nivelAnterior) {
             nivelAnterior->close();
         }
         nivelActivo = nullptr;
-
-        // Avanzar al siguiente nivel
         nivelActual = numero + 1;
         mostrarNivel(nivelActual);
     } else {
-        // Juego completado
         if (nivelAnterior) {
             nivelAnterior->close();
         }
         nivelActivo = nullptr;
-
         QMessageBox::information(this, tr("Juego completado"),
                                  tr("¡Has completado todos los niveles!\n\nVolviendo al menú..."));
         volverAlMenu();
@@ -229,14 +222,15 @@ void Portada::avanzarNivel(int numero)
 
 void Portada::volverAlMenu()
 {
-    // Obtener referencia al nivel que envió la señal y cerrarlo
     Nivel *nivelAnterior = qobject_cast<Nivel*>(sender());
     if (nivelAnterior) {
         nivelAnterior->close();
+    }else if (nivelActivo) {
+        nivelActivo->close();
     }
     nivelActivo = nullptr;
-
-    // Mostrar el menú nuevamente
+    QMessageBox::critical(this, tr("Derrota"),
+                          tr("Has sido derrotado.\n\nVolviendo al menú principal..."));
     showFullScreen();
     player->play();
 }

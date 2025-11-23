@@ -19,12 +19,14 @@ protected:
     void actualizarJuego() override;
     void verificarColisiones() override;
     void cargarFondo() override;
-    void crearEnemigos();
+    void generarEnemigo(int tipo);
+private slots:
     void actualizarTemporizador();
 private:
     QList<Enemigo*> enemigos;
     QTimer *timerSegundo;
     int enemigosEliminados;
+    int tiempoTranscurrido;
 };
 
 #endif // NIVEL1_H

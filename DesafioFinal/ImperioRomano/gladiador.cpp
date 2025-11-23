@@ -41,7 +41,6 @@ void Gladiador::cargarSpritesIndividuales()
 {
     animIdle.clear();
     animIdle.append(QPixmap(":/images/idle_01.jpeg"));
-    animIdle.append(QPixmap(":/images/idle_02.jpeg"));
 
     animWalk.clear();
     animWalk.append(QPixmap(":/images/player_walk_01.png"));
@@ -114,6 +113,8 @@ void Gladiador::aplicarGravedad()
 void Gladiador::actualizar()
 {
     aplicarGravedad();
+    qreal oldX = x();
+    qreal oldY = y();
     setPos(x() + velocidadX, y() + velocidadY);
 
     if (!scene()) return;
@@ -200,7 +201,15 @@ QPixmap Gladiador::obtenerSpriteActual()
 
     return px;
 }
-
+void Gladiador::aplicarKnockback(qreal fuerzaX)
+{
+    velocidadX = fuerzaX;
+    // Opcional: pequeño salto
+    if (enSuelo) {
+        velocidadY = -5.0;
+        enSuelo = false;
+    }
+}
 void Gladiador::actualizarSprite()
 {
     QPixmap px = obtenerSpriteActual();
@@ -211,9 +220,13 @@ void Gladiador::actualizarSprite()
 
 QRectF Gladiador::getBoundingBox() const
 {
-    qreal w = pixmap().width();
-    qreal h = pixmap().height();
-    return QRectF(x() - w/2, y() - h, w, h);
+    qreal w = pixmap().width()* 0.6;
+    qreal h = pixmap().height()* 0.8;
+    qreal offsetX = (pixmap().width() - w) / 2;
+    qreal offsetY = (pixmap().height() - h);
+    return QRectF(x() - pixmap().width()/2 + offsetX,
+                  y() - pixmap().height() + offsetY,
+                  w, h);
 }
 
 void Gladiador::setVida(int nuevaVida)
@@ -230,5 +243,33 @@ void Gladiador::setVida(int nuevaVida)
 void Gladiador::recibirDanio(int danio)
 {
     setVida(vida - danio);
+}
+
+void Gladiador::resolverColision(const QRectF &obstaculoBBox)
+{
+    QRectF misBBox = getBoundingBox();
+
+    if (!misBBox.intersects(obstaculoBBox)) return;
+
+    // Calcular cuánto se sobreponen
+    qreal overlapLeft = misBBox.right() - obstaculoBBox.left();
+    qreal overlapRight = obstaculoBBox.right() - misBBox.left();
+    qreal overlapTop = misBBox.bottom() - obstaculoBBox.top();
+    qreal overlapBottom = obstaculoBBox.bottom() - misBBox.top();
+    qreal minOverlap = qMin(qMin(overlapLeft, overlapRight), qMin(overlapTop, overlapBottom));
+
+    if (minOverlap == overlapLeft) {
+        setPos(x() - overlapLeft, y());
+        velocidadX = 0;
+    } else if (minOverlap == overlapRight) {
+        setPos(x() + overlapRight, y());
+        velocidadX = 0;
+    } else if (minOverlap == overlapTop) {
+        setPos(x(), y() - overlapTop);
+        velocidadY = 0;
+    } else if (minOverlap == overlapBottom) {
+        setPos(x(), y() + overlapBottom);
+        velocidadY = 0;
+    }
 }
 

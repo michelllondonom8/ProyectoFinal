@@ -163,27 +163,31 @@ compiler_rcc_clean:
 release/qrc_resources.cpp: ../../resources.qrc \
 		C:/Qt/6.7.3/mingw_64/bin/rcc.exe \
 		../../images/pillar_anim_2.png \
+		../../images/enemigo_normal_walk_02.png \
 		../../images/explosion_0.png \
 		../../images/explosion_2.png \
 		../../images/rock_0.png \
 		../../images/idle_01.jpeg \
+		../../images/enemigo_normal_attack_02.png \
+		../../images/enemigo_normal_walk_01.png \
 		../../images/Nivel2_fondo.jpeg \
 		../../images/player_walk_01.png \
 		../../images/player_death_02.png \
 		../../images/Nivel3_fondo.jpeg \
 		../../images/player_walk_02.png \
 		../../images/explosion_1.png \
-		../../images/idle_02.jpeg \
 		../../images/pillar_anim_1.png \
 		../../images/player_walk_03.png \
 		../../images/rock_2.png \
 		../../images/Fondo1.jpg \
 		../../images/player_attack_01.png \
+		../../images/enemigo_normal_attack_01.png \
 		../../images/player_jump.png \
 		../../images/portada.jpeg \
 		../../images/pillar_anim_0.png \
 		../../images/player_death_01.png \
 		../../images/rock_1.png \
+		../../images/enemigo_normal_idle_01.png \
 		../../images/player_attack_02.png \
 		../../sounds/pillar_crash_1.wav \
 		../../sounds/batalla.mp3 \
@@ -492,6 +496,7 @@ release/moc_enemigo.cpp: ../../enemigo.h \
 		C:/Qt/6.7.3/mingw_64/include/QtGui/qimage.h \
 		C:/Qt/6.7.3/mingw_64/include/QtGui/qpixelformat.h \
 		C:/Qt/6.7.3/mingw_64/include/QtGui/QPixmap \
+		C:/Qt/6.7.3/mingw_64/include/QtCore/QRectF \
 		C:/Qt/6.7.3/mingw_64/include/QtCore/QVector \
 		C:/Qt/6.7.3/mingw_64/include/QtCore/qvector.h \
 		release/moc_predefs.h \
@@ -641,6 +646,7 @@ release/moc_gladiador.cpp: ../../gladiador.h \
 		C:/Qt/6.7.3/mingw_64/include/QtGui/QPixmap \
 		C:/Qt/6.7.3/mingw_64/include/QtCore/QVector \
 		C:/Qt/6.7.3/mingw_64/include/QtCore/qvector.h \
+		C:/Qt/6.7.3/mingw_64/include/QtCore/QRectF \
 		release/moc_predefs.h \
 		C:/Qt/6.7.3/mingw_64/bin/moc.exe
 	C:\Qt\6.7.3\mingw_64\bin\moc.exe $(DEFINES) --include "C:/Users/Admin/Documents/Udea/R Informatica II/DesafioFinal/DesafioFinal/ImperioRomano/build/Desktop_Qt_6_7_3_MinGW_64_bit-Debug/release/moc_predefs.h" -IC:/Qt/6.7.3/mingw_64/mkspecs/win32-g++ -I"C:/Users/Admin/Documents/Udea/R Informatica II/DesafioFinal/DesafioFinal/ImperioRomano" -IC:/Qt/6.7.3/mingw_64/include -IC:/Qt/6.7.3/mingw_64/include/QtMultimedia -IC:/Qt/6.7.3/mingw_64/include/QtWidgets -IC:/Qt/6.7.3/mingw_64/include/QtGui -IC:/Qt/6.7.3/mingw_64/include/QtNetwork -IC:/Qt/6.7.3/mingw_64/include/QtCore -I. -IC:/Qt/Tools/mingw1120_64/lib/gcc/x86_64-w64-mingw32/11.2.0/include/c++ -IC:/Qt/Tools/mingw1120_64/lib/gcc/x86_64-w64-mingw32/11.2.0/include/c++/x86_64-w64-mingw32 -IC:/Qt/Tools/mingw1120_64/lib/gcc/x86_64-w64-mingw32/11.2.0/include/c++/backward -IC:/Qt/Tools/mingw1120_64/lib/gcc/x86_64-w64-mingw32/11.2.0/include -IC:/Qt/Tools/mingw1120_64/lib/gcc/x86_64-w64-mingw32/11.2.0/include-fixed -IC:/Qt/Tools/mingw1120_64/x86_64-w64-mingw32/include ..\..\gladiador.h -o release\moc_gladiador.cpp
@@ -2514,17 +2520,12 @@ release/enemigo.o: ../../enemigo.cpp ../../enemigo.h \
 		C:/Qt/6.7.3/mingw_64/include/QtGui/qimage.h \
 		C:/Qt/6.7.3/mingw_64/include/QtGui/qpixelformat.h \
 		C:/Qt/6.7.3/mingw_64/include/QtGui/QPixmap \
+		C:/Qt/6.7.3/mingw_64/include/QtCore/QRectF \
 		C:/Qt/6.7.3/mingw_64/include/QtCore/QVector \
 		C:/Qt/6.7.3/mingw_64/include/QtCore/qvector.h \
 		C:/Qt/6.7.3/mingw_64/include/QtCore/QtMath \
-		C:/Qt/6.7.3/mingw_64/include/QtCore/QFile \
-		C:/Qt/6.7.3/mingw_64/include/QtCore/qfile.h \
-		C:/Qt/6.7.3/mingw_64/include/QtCore/qfiledevice.h \
-		C:/Qt/6.7.3/mingw_64/include/QtCore/qiodevice.h \
-		C:/Qt/6.7.3/mingw_64/include/QtCore/QTextStream \
-		C:/Qt/6.7.3/mingw_64/include/QtCore/QDebug \
-		C:/Qt/6.7.3/mingw_64/include/QtCore/QRegularExpression \
-		C:/Qt/6.7.3/mingw_64/include/QtCore/qregularexpression.h
+		C:/Qt/6.7.3/mingw_64/include/QtGui/QTransform \
+		C:/Qt/6.7.3/mingw_64/include/QtCore/QDebug
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o release\enemigo.o ..\..\enemigo.cpp
 
 release/fisica.o: ../../fisica.cpp ../../fisica.h \
@@ -2718,6 +2719,7 @@ release/gladiador.o: ../../gladiador.cpp ../../gladiador.h \
 		C:/Qt/6.7.3/mingw_64/include/QtGui/QPixmap \
 		C:/Qt/6.7.3/mingw_64/include/QtCore/QVector \
 		C:/Qt/6.7.3/mingw_64/include/QtCore/qvector.h \
+		C:/Qt/6.7.3/mingw_64/include/QtCore/QRectF \
 		../../fisica.h \
 		C:/Qt/6.7.3/mingw_64/include/QtCore/QtGlobal \
 		C:/Qt/6.7.3/mingw_64/include/QtWidgets/QGraphicsScene \
@@ -3362,6 +3364,7 @@ release/nivel.o: ../../nivel.cpp ../../nivel.h \
 		C:/Qt/6.7.3/mingw_64/include/QtGui/QPixmap \
 		C:/Qt/6.7.3/mingw_64/include/QtCore/QVector \
 		C:/Qt/6.7.3/mingw_64/include/QtCore/qvector.h \
+		C:/Qt/6.7.3/mingw_64/include/QtCore/QRectF \
 		C:/Qt/6.7.3/mingw_64/include/QtWidgets/QVBoxLayout \
 		C:/Qt/6.7.3/mingw_64/include/QtWidgets/qboxlayout.h \
 		C:/Qt/6.7.3/mingw_64/include/QtWidgets/qlayout.h \
@@ -3589,6 +3592,7 @@ release/nivel1.o: ../../nivel1.cpp ../../nivel1.h \
 		C:/Qt/6.7.3/mingw_64/include/QtGui/QPixmap \
 		C:/Qt/6.7.3/mingw_64/include/QtCore/QVector \
 		C:/Qt/6.7.3/mingw_64/include/QtCore/qvector.h \
+		C:/Qt/6.7.3/mingw_64/include/QtCore/QRectF \
 		../../enemigo.h \
 		C:/Qt/6.7.3/mingw_64/include/QtWidgets/QMessageBox \
 		C:/Qt/6.7.3/mingw_64/include/QtWidgets/qmessagebox.h \
@@ -3817,6 +3821,7 @@ release/nivel2.o: ../../nivel2.cpp ../../nivel2.h \
 		C:/Qt/6.7.3/mingw_64/include/QtGui/QPixmap \
 		C:/Qt/6.7.3/mingw_64/include/QtCore/QVector \
 		C:/Qt/6.7.3/mingw_64/include/QtCore/qvector.h \
+		C:/Qt/6.7.3/mingw_64/include/QtCore/QRectF \
 		C:/Qt/6.7.3/mingw_64/include/QtCore/QRandomGenerator \
 		C:/Qt/6.7.3/mingw_64/include/QtCore/qrandom.h
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o release\nivel2.o ..\..\nivel2.cpp
@@ -4034,6 +4039,7 @@ release/nivel3.o: ../../nivel3.cpp ../../nivel3.h \
 		C:/Qt/6.7.3/mingw_64/include/QtWidgets/qgraphicsitem.h \
 		C:/Qt/6.7.3/mingw_64/include/QtGui/qpainterpath.h \
 		C:/Qt/6.7.3/mingw_64/include/QtGui/QPixmap \
+		C:/Qt/6.7.3/mingw_64/include/QtCore/QRectF \
 		C:/Qt/6.7.3/mingw_64/include/QtCore/QVector \
 		C:/Qt/6.7.3/mingw_64/include/QtCore/qvector.h \
 		../../catapulta.h \

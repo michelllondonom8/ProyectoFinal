@@ -24,11 +24,13 @@ public:
     int getVida() const { return vida; }
     bool estaAtacando() const { return atacando; }
     bool estaEnSuelo() const { return enSuelo; }
+    bool estaVivo() const { return vida > 0; }
     QRectF getBoundingBox() const;
 
     void setVida(int nuevaVida);
     void recibirDanio(int danio);
-
+    void resolverColision(const QRectF &obstaculoBBox);
+    void aplicarKnockback(qreal fuerzaX);
 signals:
     void vidaCambiada(int vida);
     void murio();

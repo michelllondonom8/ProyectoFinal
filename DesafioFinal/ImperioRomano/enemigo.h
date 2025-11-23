@@ -3,8 +3,10 @@
 
 #include <QObject>
 #include <QGraphicsPixmapItem>
+#include <QGraphicsRectItem>
 #include <QPixmap>
 #include <QRectF>
+#include <QVector>
 
 class Enemigo : public QObject, public QGraphicsPixmapItem
 {
@@ -12,7 +14,6 @@ class Enemigo : public QObject, public QGraphicsPixmapItem
 
 public:
     explicit Enemigo(bool fuerte, QObject *parent = nullptr);
-
     void actualizar(const QPointF &posJugador);
     void recibirDanio(int danio);
 
@@ -26,19 +27,21 @@ public:
 
 signals:
     void murio();
+    void ataque();
 
 private:
     bool esFuerte;
     int vida;
     int vidaMaxima;
-
     qreal velocidad;
     qreal rangoDeteccion;
     qreal rangoAtaque;
 
     bool atacando;
     int contadorAtaque;
-
+    int cooldownAtaque;
+    int cooldownAtaqueMax;
+    bool yaGolpeo;
     int frameActual;
     int contadorFrame;
     int framesPorAnimacion;
@@ -47,12 +50,22 @@ private:
     enum EstadoAnimacion {
         IDLE,
         CAMINANDO,
-        ATACANDO
+        ATACANDO,
+        MUERTO
     };
     EstadoAnimacion estadoActual;
+    QVector<QPixmap> animIdle;
+    QVector<QPixmap> animWalk;
+    QVector<QPixmap> animAttack;
+    QVector<QPixmap> animDeath;
+    QGraphicsRectItem *barraVidaFondo;
+    QGraphicsRectItem *barraVida;
+    void cargarSprites();
     QPixmap crearPlaceholder() const;
     void actualizarAnimacion();
     void actualizarSprite();
+    QPixmap obtenerSpriteActual();
+    void actualizarBarraVida();
 };
 
 #endif
