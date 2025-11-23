@@ -15,17 +15,12 @@ public:
     ~Nivel1();
 
 protected:
-    // Implementación de métodos virtuales puros de Nivel
     void inicializarNivel() override;
     void actualizarJuego() override;
     void verificarColisiones() override;
     void cargarFondo() override;
-
-    // Métodos específicos de Nivel1
     void crearEnemigos();
     void actualizarTemporizador();
-    void verificarCondicionesVictoria();
-
 private:
     QList<Enemigo*> enemigos;
     QTimer *timerSegundo;

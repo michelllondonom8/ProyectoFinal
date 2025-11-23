@@ -23,4 +23,4 @@ void calcularTiroParabolico(qreal &vx, qreal &vy)
     if (vy > MAX_CAIDA) vy = MAX_CAIDA;
 }
 
-} // namespace Fisica
+}

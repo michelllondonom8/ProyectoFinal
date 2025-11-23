@@ -6,6 +6,7 @@ CONFIG += c++17
 SOURCES += \
     catapulta.cpp \
     enemigo.cpp \
+    fisica.cpp \
     gladiador.cpp \
     main.cpp \
     mainwindow.cpp \
@@ -19,6 +20,7 @@ SOURCES += \
 HEADERS += \
     catapulta.h \
     enemigo.h \
+    fisica.h \
     gladiador.h \
     mainwindow.h \
     nivel.h \

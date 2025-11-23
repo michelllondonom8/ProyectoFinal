@@ -23,7 +23,6 @@ signals:
     void nivelFallido();
 
 protected:
-    // Métodos virtuales para ser implementados por cada nivel
     virtual void inicializarNivel() = 0;
     virtual void actualizarJuego() = 0;
     virtual void verificarColisiones() = 0;
@@ -33,11 +32,9 @@ protected:
     void configurarHUD();
     void finalizarNivel(bool exitoso);
 
-    // Eventos de teclado
     void keyPressEvent(QKeyEvent *event) override;
     void keyReleaseEvent(QKeyEvent *event) override;
 
-    // Miembros protegidos
     QGraphicsScene *escena;
     Gladiador *jugador;
     QTimer *timerJuego;
@@ -49,11 +46,9 @@ protected:
     int tiempoRestante;
     bool nivelActivo;
 
-    // Dimensiones de la pantalla
     int anchoPantalla;
     int altoPantalla;
 
-    // Estado de teclas
     bool teclaIzquierda;
     bool teclaDerecha;
     bool teclaSalto;
