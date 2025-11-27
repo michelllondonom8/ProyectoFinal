@@ -27,6 +27,8 @@ protected:
     virtual void actualizarJuego() = 0;
     virtual void verificarColisiones() = 0;
     virtual void cargarFondo() = 0;
+    void mostrarMensajeDerrota();
+    void mostrarMensajeVictoria();
 
     void configurarEscena();
     void configurarHUD();
@@ -38,6 +40,8 @@ protected:
     QGraphicsScene *escena;
     Gladiador *jugador;
     QTimer *timerJuego;
+    QGraphicsRectItem *fondoMensaje;
+    QGraphicsTextItem *mensajeTexto;
 
     QProgressBar *barraVida;
     QLabel *labelTiempo;

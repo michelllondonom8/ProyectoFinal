@@ -41,8 +41,12 @@ void Nivel1::inicializarNivel()
     connect(jugador, &Gladiador::vidaCambiada, this, [this](int vida) {
         barraVida->setValue(vida);
         if (vida <= 0) {
-            finalizarNivel(false);
-            QMessageBox::critical(this, "Derrota", "Has sido derrotado en el Coliseo.");
+            nivelActivo = false;
+            timerJuego->stop();
+            if (timerSegundo) timerSegundo->stop();
+            QTimer::singleShot(2000, this, [this]() {
+                finalizarNivel(false);
+            });
         }
     });
     generarEnemigo(0);
@@ -95,25 +99,20 @@ void Nivel1::generarEnemigo(int tipo)
         connect(enemigo, &Enemigo::ataque, this, [this, enemigo]() {
             if (jugador && enemigo && jugador->estaVivo() && enemigo->estaVivo()) {
                 QRectF rectJugador = jugador->getBoundingBox();
-                QRectF rectEnemigo = enemigo->getBoundingBox();
+                QRectF rangoAtaqueEnemigo = enemigo->getRangoAtaque();
 
-                if (rectJugador.intersects(rectEnemigo)) {
+                if (rangoAtaqueEnemigo.intersects(rectJugador)) {
                     int danio = enemigo->esFuerteEnemigo() ? 15 : 12;
                     jugador->recibirDanio(danio);
-                    qreal direccion = (jugador->x() < enemigo->x()) ? -8.0 : 8.0;
-                    jugador->aplicarKnockback(direccion);
                 }
             }
         });
         connect(enemigo, &Enemigo::murio, this, [this, enemigo]() {
-            qDebug() << "Enemigo murió!";
-            QTimer::singleShot(2000, this, [this, enemigo]() {
-                if (enemigos.contains(enemigo)) {
-                    escena->removeItem(enemigo);
-                    enemigos.removeOne(enemigo);
-                    enemigo->deleteLater();
-                }
-            });
+            if (enemigos.contains(enemigo)) {
+                escena->removeItem(enemigo);
+                enemigos.removeOne(enemigo);
+                enemigo->deleteLater();
+            }
         });
     }
 }
@@ -142,7 +141,7 @@ void Nivel1::actualizarJuego()
     jugador->actualizar();
 
     for (Enemigo *e : enemigos) {
-        if (e && e->estaVivo()){
+        if (e){
             e->actualizar(jugador->pos());
         }
     }
@@ -150,17 +149,22 @@ void Nivel1::actualizarJuego()
     bool todosGenerados = (tiempoTranscurrido >= 10);
     if (todosGenerados) {
         int enemigosVivos = 0;
+        bool hayEnemigosDesapareciendo = false;
         for (Enemigo *e : enemigos) {
-            if (e && e->estaVivo()) {
-                enemigosVivos++;
+            if (e) {
+                if (e && e->estaVivo()) {
+                    enemigosVivos++;
+                }else{
+                    hayEnemigosDesapareciendo = true;
+                }
             }
         }
-        if (enemigosVivos == 0) {
+        if (enemigosVivos == 0 && !hayEnemigosDesapareciendo && enemigos.isEmpty()) {
             nivelActivo = false;
             timerJuego->stop();
             if (timerSegundo) timerSegundo->stop();
 
-            QTimer::singleShot(500, this, [this]() {
+            QTimer::singleShot(1000, this, [this]() {
                 finalizarNivel(true);
             });
         }
@@ -177,10 +181,14 @@ void Nivel1::verificarColisiones()
         QRectF rectEnemigo = enemigo->getBoundingBox();
         if (rectJugador.intersects(rectEnemigo)) {
             jugador->resolverColision(rectEnemigo);
+        }
+        if (jugador->estaAtacando()) {
+            QRectF rangoAtaqueJugador = jugador->getRangoAtaque();
 
-            if (jugador->estaAtacando()) {
-                int danio = 25;
+            if (rangoAtaqueJugador.intersects(rectEnemigo)) {
+                int danio = 4;
                 enemigo->recibirDanio(danio);
+
                 if (!enemigo->estaVivo()) {
                     enemigosEliminados++;
                 }
@@ -188,7 +196,6 @@ void Nivel1::verificarColisiones()
         }
     }
 }
-
 
 void Nivel1::actualizarTemporizador()
 {
@@ -215,4 +222,5 @@ void Nivel1::actualizarTemporizador()
         timerSegundo->stop();
         finalizarNivel(false);
     }
+
 }

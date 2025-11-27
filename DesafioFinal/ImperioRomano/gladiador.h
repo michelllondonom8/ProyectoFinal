@@ -26,6 +26,7 @@ public:
     bool estaEnSuelo() const { return enSuelo; }
     bool estaVivo() const { return vida > 0; }
     QRectF getBoundingBox() const;
+    QRectF getRangoAtaque() const;
 
     void setVida(int nuevaVida);
     void recibirDanio(int danio);

@@ -4,6 +4,8 @@
 #include <QGraphicsProxyWidget>
 #include <QScreen>
 #include <QGuiApplication>
+#include <QPropertyAnimation>
+#include <QEasingCurve>
 
 Nivel::Nivel(int numero, QWidget *parent)
     : QGraphicsView(parent),
@@ -16,7 +18,9 @@ Nivel::Nivel(int numero, QWidget *parent)
     teclaIzquierda(false),
     teclaDerecha(false),
     teclaSalto(false),
-    teclaAtaque(false)
+    teclaAtaque(false),
+    mensajeTexto(nullptr),
+    fondoMensaje(nullptr)
 {
     configurarEscena();
     configurarHUD();
@@ -29,6 +33,126 @@ Nivel::~Nivel()
         delete timerJuego;
     }
     if (escena) delete escena;
+}
+
+void Nivel::mostrarMensajeVictoria()
+{
+    // Fondo semi-transparente con degradado
+    if (!fondoMensaje) {
+        fondoMensaje = new QGraphicsRectItem(0, 0, escena->width(), escena->height());
+        QLinearGradient gradient(0, 0, 0, escena->height());
+        gradient.setColorAt(0, QColor(0, 50, 0, 200));
+        gradient.setColorAt(1, QColor(0, 100, 0, 200));
+        fondoMensaje->setBrush(QBrush(gradient));
+        fondoMensaje->setZValue(1000);
+        escena->addItem(fondoMensaje);
+    }
+    fondoMensaje->setVisible(true);
+
+    // Crear texto de victoria
+    if (!mensajeTexto) {
+        mensajeTexto = new QGraphicsTextItem();
+        mensajeTexto->setZValue(1001);
+        escena->addItem(mensajeTexto);
+    }
+
+    QString textoVictoria = QString("⚔️ NIVEL %1 CONQUISTADO ⚔️").arg(numeroNivel);
+
+    mensajeTexto->setHtml(
+        QString("<div style='text-align: center;'>"
+                "<span style='color: gold; font-size: 56px; font-weight: bold; "
+                "text-shadow: 3px 3px 6px black;'>%1</span><br>"
+                "<span style='color: white; font-size: 28px;'>¡Gloria a Roma!</span>"
+                "</div>").arg(textoVictoria)
+        );
+
+    // Centrar el texto
+    qreal x = (escena->width() - mensajeTexto->boundingRect().width()) / 2;
+    qreal y = (escena->height() - mensajeTexto->boundingRect().height()) / 2;
+    mensajeTexto->setPos(x, y);
+    mensajeTexto->setVisible(true);
+
+    // ANIMACIÓN SIMPLE CON TIMER (sin QPropertyAnimation)
+    fondoMensaje->setOpacity(0);
+    mensajeTexto->setOpacity(0);
+
+    // Fade in con timer
+    QTimer *timer = new QTimer(this);
+    qreal *opacity = new qreal(0.0);
+
+    connect(timer, &QTimer::timeout, [this, timer, opacity]() {
+        *opacity += 0.05;
+
+        if (*opacity >= 1.0) {
+            *opacity = 1.0;
+            timer->stop();
+            timer->deleteLater();
+            delete opacity;
+        }
+
+        if (fondoMensaje) fondoMensaje->setOpacity(*opacity);
+        if (mensajeTexto) mensajeTexto->setOpacity(*opacity);
+    });
+
+    timer->start(30);  // 30ms = ~33 fps
+}
+
+void Nivel::mostrarMensajeDerrota()
+{
+    // Fondo rojo sangre
+    if (!fondoMensaje) {
+        fondoMensaje = new QGraphicsRectItem(0, 0, escena->width(), escena->height());
+        QRadialGradient gradient(escena->width()/2, escena->height()/2, escena->width()/2);
+        gradient.setColorAt(0, QColor(150, 0, 0, 220));
+        gradient.setColorAt(1, QColor(50, 0, 0, 250));
+        fondoMensaje->setBrush(QBrush(gradient));
+        fondoMensaje->setZValue(1000);
+        escena->addItem(fondoMensaje);
+    }
+    fondoMensaje->setVisible(true);
+
+    if (!mensajeTexto) {
+        mensajeTexto = new QGraphicsTextItem();
+        mensajeTexto->setZValue(1001);
+        escena->addItem(mensajeTexto);
+    }
+
+    mensajeTexto->setHtml(
+        "<div style='text-align: center;'>"
+        "<span style='color: #FF3333; font-size: 64px; font-weight: bold; "
+        "text-shadow: 4px 4px 8px black;'>💀 GAME OVER 💀</span><br>"
+        "<span style='color: #FFAAAA; font-size: 24px;'>Roma ha caído...</span>"
+        "</div>"
+        );
+
+    // Centrar
+    qreal x = (escena->width() - mensajeTexto->boundingRect().width()) / 2;
+    qreal y = (escena->height() - mensajeTexto->boundingRect().height()) / 2;
+    mensajeTexto->setPos(x, y);
+    mensajeTexto->setVisible(true);
+
+    // ANIMACIÓN SIMPLE CON TIMER
+    fondoMensaje->setOpacity(0);
+    mensajeTexto->setOpacity(0);
+
+    QTimer *timer = new QTimer(this);
+    qreal *opacity = new qreal(0.0);
+
+    connect(timer, &QTimer::timeout, [this, timer, opacity]() {
+        *opacity += 0.04;  // Más lento que victoria
+
+        if (*opacity >= 1.0) {
+            *opacity = 1.0;
+            timer->stop();
+            timer->deleteLater();
+            delete opacity;
+        }
+
+        if (fondoMensaje) fondoMensaje->setOpacity(*opacity);
+        if (mensajeTexto) mensajeTexto->setOpacity(*opacity);
+    });
+
+    timer->start(40);  // Más lento para efecto dramático
 }
 
 void Nivel::configurarEscena()
@@ -153,10 +277,19 @@ void Nivel::finalizarNivel(bool exitoso)
     if (timerJuego) {
         timerJuego->stop();
     }
-
     if (exitoso) {
-        emit nivelCompletado(numeroNivel);
+        // Mostrar mensaje de victoria y esperar 3 segundos
+        mostrarMensajeVictoria();
+
+        QTimer::singleShot(4000, this, [this]() {
+            emit nivelCompletado(numeroNivel);
+        });
     } else {
-        emit nivelFallido();
+        // Mostrar mensaje de derrota y esperar 3 segundos
+        mostrarMensajeDerrota();
+
+        QTimer::singleShot(4000, this, [this]() {
+            emit nivelFallido();
+        });
     }
 }

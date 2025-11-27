@@ -1,6 +1,5 @@
 #ifndef ENEMIGO_H
 #define ENEMIGO_H
-
 #include <QObject>
 #include <QGraphicsPixmapItem>
 #include <QGraphicsRectItem>
@@ -11,7 +10,6 @@
 class Enemigo : public QObject, public QGraphicsPixmapItem
 {
     Q_OBJECT
-
 public:
     explicit Enemigo(bool fuerte, QObject *parent = nullptr);
     void actualizar(const QPointF &posJugador);
@@ -24,6 +22,7 @@ public:
     bool esFuerteEnemigo() const { return esFuerte; }
 
     QRectF getBoundingBox() const;
+    QRectF getRangoAtaque() const;
 
 signals:
     void murio();
@@ -42,6 +41,7 @@ private:
     int cooldownAtaque;
     int cooldownAtaqueMax;
     bool yaGolpeo;
+
     int frameActual;
     int contadorFrame;
     int framesPorAnimacion;
@@ -54,12 +54,15 @@ private:
         MUERTO
     };
     EstadoAnimacion estadoActual;
+
     QVector<QPixmap> animIdle;
     QVector<QPixmap> animWalk;
     QVector<QPixmap> animAttack;
     QVector<QPixmap> animDeath;
+
     QGraphicsRectItem *barraVidaFondo;
     QGraphicsRectItem *barraVida;
+
     void cargarSprites();
     QPixmap crearPlaceholder() const;
     void actualizarAnimacion();
@@ -67,5 +70,4 @@ private:
     QPixmap obtenerSpriteActual();
     void actualizarBarraVida();
 };
-
 #endif

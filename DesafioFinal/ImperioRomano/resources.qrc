@@ -30,5 +30,13 @@
         <file>images/enemigo_normal_idle_01.png</file>
         <file>images/enemigo_normal_walk_01.png</file>
         <file>images/enemigo_normal_walk_02.png</file>
+        <file>images/enemigo_idle1.png</file>
+        <file>images/enemigo_walk1.png</file>
+        <file>images/enemigo_walk2.png</file>
+        <file>images/enemigo_ataque.png</file>
+        <file>images/enemigo_muerte1.png</file>
+        <file>images/enemigo_muerte2.png</file>
+        <file>images/enemigo_muerte3.png</file>
+        <file>images/enemigo_muerte4.png</file>
     </qresource>
 </RCC>

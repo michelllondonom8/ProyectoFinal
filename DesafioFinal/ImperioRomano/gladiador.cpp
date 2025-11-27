@@ -229,6 +229,24 @@ QRectF Gladiador::getBoundingBox() const
                   w, h);
 }
 
+QRectF Gladiador::getRangoAtaque() const
+{
+    qreal anchoAtaque = 70;
+    qreal altoAtaque = pixmap().height() * 0.5;
+
+    qreal offsetX;
+    if (mirandoDerecha) {
+        offsetX = pixmap().width()/2;
+    } else {
+        offsetX = -pixmap().width()/2 - anchoAtaque;
+    }
+
+    return QRectF(x() + offsetX,
+                  y() - pixmap().height() + 20,
+                  anchoAtaque,
+                  altoAtaque);
+}
+
 void Gladiador::setVida(int nuevaVida)
 {
     vida = qBound(0, nuevaVida, 100);

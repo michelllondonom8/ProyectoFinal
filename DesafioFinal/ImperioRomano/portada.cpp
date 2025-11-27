@@ -229,8 +229,6 @@ void Portada::volverAlMenu()
         nivelActivo->close();
     }
     nivelActivo = nullptr;
-    QMessageBox::critical(this, tr("Derrota"),
-                          tr("Has sido derrotado.\n\nVolviendo al menú principal..."));
     showFullScreen();
     player->play();
 }

@@ -166,16 +166,21 @@ release/qrc_resources.cpp: ../../resources.qrc \
 		../../images/enemigo_normal_walk_02.png \
 		../../images/explosion_0.png \
 		../../images/explosion_2.png \
+		../../images/enemigo_idle1.png \
+		../../images/enemigo_ataque.png \
 		../../images/rock_0.png \
 		../../images/idle_01.jpeg \
 		../../images/enemigo_normal_attack_02.png \
 		../../images/enemigo_normal_walk_01.png \
 		../../images/Nivel2_fondo.jpeg \
+		../../images/enemigo_muerte1.png \
 		../../images/player_walk_01.png \
+		../../images/enemigo_walk2.png \
 		../../images/player_death_02.png \
 		../../images/Nivel3_fondo.jpeg \
 		../../images/player_walk_02.png \
 		../../images/explosion_1.png \
+		../../images/enemigo_muerte3.png \
 		../../images/pillar_anim_1.png \
 		../../images/player_walk_03.png \
 		../../images/rock_2.png \
@@ -185,7 +190,10 @@ release/qrc_resources.cpp: ../../resources.qrc \
 		../../images/player_jump.png \
 		../../images/portada.jpeg \
 		../../images/pillar_anim_0.png \
+		../../images/enemigo_walk1.png \
+		../../images/enemigo_muerte4.png \
 		../../images/player_death_01.png \
+		../../images/enemigo_muerte2.png \
 		../../images/rock_1.png \
 		../../images/enemigo_normal_idle_01.png \
 		../../images/player_attack_02.png \
@@ -495,6 +503,7 @@ release/moc_enemigo.cpp: ../../enemigo.h \
 		C:/Qt/6.7.3/mingw_64/include/QtGui/qrgba64.h \
 		C:/Qt/6.7.3/mingw_64/include/QtGui/qimage.h \
 		C:/Qt/6.7.3/mingw_64/include/QtGui/qpixelformat.h \
+		C:/Qt/6.7.3/mingw_64/include/QtWidgets/QGraphicsRectItem \
 		C:/Qt/6.7.3/mingw_64/include/QtGui/QPixmap \
 		C:/Qt/6.7.3/mingw_64/include/QtCore/QRectF \
 		C:/Qt/6.7.3/mingw_64/include/QtCore/QVector \
@@ -2519,13 +2528,18 @@ release/enemigo.o: ../../enemigo.cpp ../../enemigo.h \
 		C:/Qt/6.7.3/mingw_64/include/QtGui/qrgba64.h \
 		C:/Qt/6.7.3/mingw_64/include/QtGui/qimage.h \
 		C:/Qt/6.7.3/mingw_64/include/QtGui/qpixelformat.h \
+		C:/Qt/6.7.3/mingw_64/include/QtWidgets/QGraphicsRectItem \
 		C:/Qt/6.7.3/mingw_64/include/QtGui/QPixmap \
 		C:/Qt/6.7.3/mingw_64/include/QtCore/QRectF \
 		C:/Qt/6.7.3/mingw_64/include/QtCore/QVector \
 		C:/Qt/6.7.3/mingw_64/include/QtCore/qvector.h \
 		C:/Qt/6.7.3/mingw_64/include/QtCore/QtMath \
 		C:/Qt/6.7.3/mingw_64/include/QtGui/QTransform \
-		C:/Qt/6.7.3/mingw_64/include/QtCore/QDebug
+		C:/Qt/6.7.3/mingw_64/include/QtCore/QDebug \
+		C:/Qt/6.7.3/mingw_64/include/QtGui/QBrush \
+		C:/Qt/6.7.3/mingw_64/include/QtGui/qbrush.h \
+		C:/Qt/6.7.3/mingw_64/include/QtGui/QPen \
+		C:/Qt/6.7.3/mingw_64/include/QtGui/qpen.h
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o release\enemigo.o ..\..\enemigo.cpp
 
 release/fisica.o: ../../fisica.cpp ../../fisica.h \
@@ -3594,6 +3608,7 @@ release/nivel1.o: ../../nivel1.cpp ../../nivel1.h \
 		C:/Qt/6.7.3/mingw_64/include/QtCore/qvector.h \
 		C:/Qt/6.7.3/mingw_64/include/QtCore/QRectF \
 		../../enemigo.h \
+		C:/Qt/6.7.3/mingw_64/include/QtWidgets/QGraphicsRectItem \
 		C:/Qt/6.7.3/mingw_64/include/QtWidgets/QMessageBox \
 		C:/Qt/6.7.3/mingw_64/include/QtWidgets/qmessagebox.h \
 		C:/Qt/6.7.3/mingw_64/include/QtWidgets/qdialog.h \
@@ -4038,6 +4053,7 @@ release/nivel3.o: ../../nivel3.cpp ../../nivel3.h \
 		C:/Qt/6.7.3/mingw_64/include/QtWidgets/QGraphicsPixmapItem \
 		C:/Qt/6.7.3/mingw_64/include/QtWidgets/qgraphicsitem.h \
 		C:/Qt/6.7.3/mingw_64/include/QtGui/qpainterpath.h \
+		C:/Qt/6.7.3/mingw_64/include/QtWidgets/QGraphicsRectItem \
 		C:/Qt/6.7.3/mingw_64/include/QtGui/QPixmap \
 		C:/Qt/6.7.3/mingw_64/include/QtCore/QRectF \
 		C:/Qt/6.7.3/mingw_64/include/QtCore/QVector \
@@ -4051,7 +4067,6 @@ release/nivel3.o: ../../nivel3.cpp ../../nivel3.h \
 		C:/Qt/6.7.3/mingw_64/include/QtWidgets/qmessagebox.h \
 		C:/Qt/6.7.3/mingw_64/include/QtWidgets/qdialog.h \
 		C:/Qt/6.7.3/mingw_64/include/QtWidgets/qdialogbuttonbox.h \
-		C:/Qt/6.7.3/mingw_64/include/QtWidgets/QGraphicsRectItem \
 		C:/Qt/6.7.3/mingw_64/include/QtCore/QRandomGenerator \
 		C:/Qt/6.7.3/mingw_64/include/QtCore/qrandom.h
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o release\nivel3.o ..\..\nivel3.cpp
