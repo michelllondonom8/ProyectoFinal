@@ -32,7 +32,7 @@ private:
     int repeticionesIntro;
     bool explosionActiva;
 
-    QGraphicsRectItem *puerta;
+    QGraphicsPixmapItem *puerta;
     QGraphicsPixmapItem *spriteExplosion;
     QTimer *timerExplosion;
     int frameExplosion;
@@ -45,6 +45,9 @@ private:
     void actualizarObstaculos();
     void iniciarExplosion(const QPointF &p);
     void iniciarMuerteJugador();
+    void actualizarTemporizador();
+    QTimer *timerSegundo;
+    int tiempoObjetivo;
 };
 
 #endif

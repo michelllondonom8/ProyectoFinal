@@ -1,6 +1,5 @@
 <RCC>
     <qresource prefix="/">
-        <file>images/Nivel2_fondo.jpeg</file>
         <file>images/Nivel3_fondo.jpeg</file>
         <file>images/portada.jpeg</file>
         <file>sounds/batalla.mp3</file>
@@ -38,5 +37,7 @@
         <file>images/enemigo_muerte2.png</file>
         <file>images/enemigo_muerte3.png</file>
         <file>images/enemigo_muerte4.png</file>
+        <file>images/Puerta.png</file>
+        <file>images/Nivel2_fondo.jpeg</file>
     </qresource>
 </RCC>

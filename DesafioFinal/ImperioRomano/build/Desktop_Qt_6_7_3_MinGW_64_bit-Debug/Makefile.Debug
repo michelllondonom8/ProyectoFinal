@@ -165,6 +165,7 @@ debug/qrc_resources.cpp: ../../resources.qrc \
 		../../images/pillar_anim_2.png \
 		../../images/enemigo_normal_walk_02.png \
 		../../images/explosion_0.png \
+		../../images/Puerta.png \
 		../../images/explosion_2.png \
 		../../images/enemigo_idle1.png \
 		../../images/enemigo_ataque.png \
@@ -172,11 +173,12 @@ debug/qrc_resources.cpp: ../../resources.qrc \
 		../../images/idle_01.jpeg \
 		../../images/enemigo_normal_attack_02.png \
 		../../images/enemigo_normal_walk_01.png \
-		../../images/Nivel2_fondo.jpeg \
 		../../images/enemigo_muerte1.png \
+		../../images/Nivel2_fondo.jpeg \
 		../../images/player_walk_01.png \
 		../../images/enemigo_walk2.png \
 		../../images/player_death_02.png \
+		../../images/Nivel2_fondo.png \
 		../../images/Nivel3_fondo.jpeg \
 		../../images/player_walk_02.png \
 		../../images/explosion_1.png \
@@ -3389,7 +3391,13 @@ debug/nivel.o: ../../nivel.cpp ../../nivel.h \
 		C:/Qt/6.7.3/mingw_64/include/QtWidgets/qgraphicswidget.h \
 		C:/Qt/6.7.3/mingw_64/include/QtWidgets/qgraphicslayoutitem.h \
 		C:/Qt/6.7.3/mingw_64/include/QtGui/QScreen \
-		C:/Qt/6.7.3/mingw_64/include/QtGui/QGuiApplication
+		C:/Qt/6.7.3/mingw_64/include/QtGui/QGuiApplication \
+		C:/Qt/6.7.3/mingw_64/include/QtCore/QPropertyAnimation \
+		C:/Qt/6.7.3/mingw_64/include/QtCore/qpropertyanimation.h \
+		C:/Qt/6.7.3/mingw_64/include/QtCore/qvariantanimation.h \
+		C:/Qt/6.7.3/mingw_64/include/QtCore/qabstractanimation.h \
+		C:/Qt/6.7.3/mingw_64/include/QtCore/qeasingcurve.h \
+		C:/Qt/6.7.3/mingw_64/include/QtCore/QEasingCurve
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o debug\nivel.o ..\..\nivel.cpp
 
 debug/nivel1.o: ../../nivel1.cpp ../../nivel1.h \

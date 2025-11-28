@@ -94,12 +94,11 @@ void Nivel::mostrarMensajeVictoria()
         if (mensajeTexto) mensajeTexto->setOpacity(*opacity);
     });
 
-    timer->start(30);  // 30ms = ~33 fps
+    timer->start(30);
 }
 
 void Nivel::mostrarMensajeDerrota()
 {
-    // Fondo rojo sangre
     if (!fondoMensaje) {
         fondoMensaje = new QGraphicsRectItem(0, 0, escena->width(), escena->height());
         QRadialGradient gradient(escena->width()/2, escena->height()/2, escena->width()/2);
@@ -125,13 +124,11 @@ void Nivel::mostrarMensajeDerrota()
         "</div>"
         );
 
-    // Centrar
     qreal x = (escena->width() - mensajeTexto->boundingRect().width()) / 2;
     qreal y = (escena->height() - mensajeTexto->boundingRect().height()) / 2;
     mensajeTexto->setPos(x, y);
     mensajeTexto->setVisible(true);
 
-    // ANIMACIÓN SIMPLE CON TIMER
     fondoMensaje->setOpacity(0);
     mensajeTexto->setOpacity(0);
 
@@ -152,7 +149,7 @@ void Nivel::mostrarMensajeDerrota()
         if (mensajeTexto) mensajeTexto->setOpacity(*opacity);
     });
 
-    timer->start(40);  // Más lento para efecto dramático
+    timer->start(40);
 }
 
 void Nivel::configurarEscena()
@@ -278,14 +275,12 @@ void Nivel::finalizarNivel(bool exitoso)
         timerJuego->stop();
     }
     if (exitoso) {
-        // Mostrar mensaje de victoria y esperar 3 segundos
         mostrarMensajeVictoria();
 
         QTimer::singleShot(4000, this, [this]() {
             emit nivelCompletado(numeroNivel);
         });
     } else {
-        // Mostrar mensaje de derrota y esperar 3 segundos
         mostrarMensajeDerrota();
 
         QTimer::singleShot(4000, this, [this]() {
