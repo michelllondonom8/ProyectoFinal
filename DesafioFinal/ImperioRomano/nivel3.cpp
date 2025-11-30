@@ -1,56 +1,74 @@
 #include "nivel3.h"
+#include "gladiador.h"
 #include "enemigo.h"
-#include "catapulta.h"
+#include "Catapulta.h"
 #include "proyectil.h"
-#include <QMessageBox>
-#include <QGraphicsRectItem>
-#include <QRandomGenerator>
+#include <QDebug>
 
 Nivel3::Nivel3(QWidget *parent)
     : Nivel(3, parent),
     catapulta(nullptr),
-    oleadaActual(1),
-    enemigosEliminados(0),
-    oleadaCompletada(false),
-    contadorOleada(0),
-    timerSegundo(nullptr)
+    puedeDisparar(true),
+    enemigosNormalesGenerados(0),
+    enemigosNormalesEliminados(0),
+    enemigosInteligentesGenerados(0),
+    enemigosInteligentesEliminados(0),
+    timerGeneracion(nullptr),
+    timerSegundo(nullptr),
+    contadorGeneracion(0)
 {
-    setWindowTitle("Nivel 3 - Defensa de Roma");
-    tiempoRestante = 120; // 2 minutos
+    tiempoRestante = 120;
     inicializarNivel();
 }
 
 Nivel3::~Nivel3()
 {
+    qDeleteAll(enemigos);
+    qDeleteAll(proyectiles);
+
+    if (catapulta) delete catapulta;
+
+    if (timerGeneracion) {
+        timerGeneracion->stop();
+        delete timerGeneracion;
+    }
+
     if (timerSegundo) {
         timerSegundo->stop();
         delete timerSegundo;
     }
-    qDeleteAll(enemigos);
-    qDeleteAll(proyectiles);
 }
 
 void Nivel3::inicializarNivel()
 {
     cargarFondo();
-
-    // No hay jugador gladiador en este nivel
-    jugador = nullptr;
-
-    // Ocultar barra de vida (no se usa en este nivel)
-    barraVida->hide();
-
-    // Crear catapulta
     crearCatapulta();
 
-    // Crear puerta de Roma (objetivo a defender)
-    QGraphicsRectItem *puerta = new QGraphicsRectItem(1150, 400, 50, 200);
-    puerta->setBrush(QBrush(QColor(139, 69, 19)));
-    escena->addItem(puerta);
+    // Timer para generar enemigos
+    timerGeneracion = new QTimer(this);
+    connect(timerGeneracion, &QTimer::timeout, this, [this]() {
+        contadorGeneracion++;
 
-    // Timer para el cronómetro
+        // 7 enemigos normales cada 3 segundos
+        if (enemigosNormalesGenerados < 7 && contadorGeneracion % 180 == 0) {
+            generarEnemigo(false);
+            enemigosNormalesGenerados++;
+        }
+        // 3 enemigos inteligentes después
+        else if (enemigosNormalesGenerados >= 7 &&
+                 enemigosInteligentesGenerados < 3 &&
+                 contadorGeneracion % 240 == 0) {
+            generarEnemigo(true);
+            enemigosInteligentesGenerados++;
+        }
+    });
+    timerGeneracion->start(16);
+
+    // Timer de segundos
     timerSegundo = new QTimer(this);
     connect(timerSegundo, &QTimer::timeout, this, [this]() {
+        if (!nivelActivo) return;
+
         tiempoRestante--;
         int minutos = tiempoRestante / 60;
         int segundos = tiempoRestante % 60;
@@ -59,18 +77,16 @@ void Nivel3::inicializarNivel()
                                  .arg(segundos, 2, 10, QChar('0')));
 
         if (tiempoRestante <= 0) {
+            nivelActivo = false;
+            timerJuego->stop();
+            timerGeneracion->stop();
+            timerSegundo->stop();
             finalizarNivel(false);
-            QMessageBox::critical(this, "Tiempo agotado", "Se acabó el tiempo.");
         }
     });
     timerSegundo->start(1000);
 
-    // Generar primera oleada
-    generarOleada();
-
-    // Actualizar label de tiempo
     labelTiempo->setText("Tiempo: 2:00");
-
     nivelActivo = true;
 }
 
@@ -79,222 +95,177 @@ void Nivel3::cargarFondo()
     QPixmap fondo(":/images/Nivel3_fondo.jpeg");
 
     if (!fondo.isNull()) {
-        // Escalar al tamaño de la escena
-        QPixmap fondoEscalado = fondo.scaled(
-            escena->width(),
-            escena->height(),
-            Qt::IgnoreAspectRatio,
-            Qt::SmoothTransformation
-            );
-
-        escena->setBackgroundBrush(QBrush(fondoEscalado));
+        QPixmap scaled = fondo.scaled(escena->width(), escena->height(),
+                                      Qt::IgnoreAspectRatio, Qt::SmoothTransformation);
+        escena->setBackgroundBrush(scaled);
     } else {
-        // Si no se carga la imagen, poner fondo de color
-        escena->setBackgroundBrush(QBrush(QColor(135, 206, 235))); // Cielo azul
+        escena->setBackgroundBrush(QColor(135, 206, 235));
     }
 }
 
 void Nivel3::crearCatapulta()
 {
-    catapulta = new Catapulta(this);
+    double x = 150;
+    double y = escena->height() - 50;
+
+    catapulta = new Catapulta(x, y);
     escena->addItem(catapulta);
+}
 
-    // Conectar señal de disparo
-    connect(catapulta, &Catapulta::proyectilDisparado, this, [this](Proyectil *proyectil) {
-        escena->addItem(proyectil);
-        proyectiles.append(proyectil);
+void Nivel3::disparar()
+{
+    if (!puedeDisparar || !nivelActivo || !catapulta) return;
 
-        connect(proyectil, &Proyectil::fueraDeLimites, this, [this, proyectil]() {
-            escena->removeItem(proyectil);
-            proyectiles.removeOne(proyectil);
-            proyectil->deleteLater();
+    puedeDisparar = false;
+    catapulta->animarDisparo();
+
+    double x0, y0;
+    catapulta->getPuntoLanzamiento(x0, y0);
+
+    Proyectil *p = new Proyectil(
+        x0, y0,
+        catapulta->getAngulo(),
+        VELOCIDAD_INICIAL,
+        GRAVEDAD
+        );
+
+    escena->addItem(p);
+    proyectiles.append(p);
+
+    qDebug() << "Disparo - Ángulo:" << catapulta->getAngulo();
+
+    QTimer::singleShot(300, this, [this]() {
+        if (catapulta) catapulta->restaurarPosicion();
+        puedeDisparar = true;
+    });
+}
+
+void Nivel3::generarEnemigo(bool fuerte)
+{
+    Enemigo *enemigo = new Enemigo(fuerte);
+    enemigo->setPos(escena->width() + 50, escena->height());
+    escena->addItem(enemigo);
+    enemigos.append(enemigo);
+
+    connect(enemigo, &Enemigo::murio, this, [this, enemigo, fuerte]() {
+        if (fuerte) enemigosInteligentesEliminados++;
+        else enemigosNormalesEliminados++;
+
+        QTimer::singleShot(2000, this, [this, enemigo]() {
+            if (enemigos.contains(enemigo)) {
+                escena->removeItem(enemigo);
+                enemigos.removeOne(enemigo);
+                enemigo->deleteLater();
+            }
         });
     });
 }
 
-void Nivel3::generarOleada()
-{
-    // Limpiar enemigos anteriores
-    qDeleteAll(enemigos);
-    enemigos.clear();
-    oleadaCompletada = false;
-    contadorOleada = 0;
-
-    switch (oleadaActual) {
-    case 1:
-        // Oleada 1: Un enemigo grande (2 vidas)
-        {
-            Enemigo *grande = new Enemigo(true); // true = fuerte/grande
-            grande->setPos(1150, 480);
-            escena->addItem(grande);
-            enemigos.append(grande);
-        }
-        break;
-
-    case 2:
-        // Oleada 2: Dos enemigos pequeños (1 vida cada uno)
-        {
-            Enemigo *pequeno1 = new Enemigo(false);
-            pequeno1->setPos(1150, 500);
-            escena->addItem(pequeno1);
-            enemigos.append(pequeno1);
-
-            Enemigo *pequeno2 = new Enemigo(false);
-            pequeno2->setPos(1100, 500);
-            escena->addItem(pequeno2);
-            enemigos.append(pequeno2);
-        }
-        break;
-
-    case 3:
-        // Oleada 3: Combinación de enemigos
-        {
-            Enemigo *grande = new Enemigo(true);
-            grande->setPos(1150, 480);
-            escena->addItem(grande);
-            enemigos.append(grande);
-
-            Enemigo *pequeno1 = new Enemigo(false);
-            pequeno1->setPos(1100, 500);
-            escena->addItem(pequeno1);
-            enemigos.append(pequeno1);
-
-            Enemigo *pequeno2 = new Enemigo(false);
-            pequeno2->setPos(1050, 500);
-            escena->addItem(pequeno2);
-            enemigos.append(pequeno2);
-        }
-        break;
-    }
-}
-
-void Nivel3::mousePressEvent(QMouseEvent *event)
-{
-    if (event->button() == Qt::LeftButton && nivelActivo && catapulta) {
-        catapulta->disparar();
-    }
-    QGraphicsView::mousePressEvent(event);
-}
-
-void Nivel3::actualizarJuego()
-{
-    if (!nivelActivo) return;
-
-    // Actualizar catapulta (oscilación)
-    if (catapulta) {
-        catapulta->actualizar();
-    }
-
-    // Actualizar proyectiles
-    actualizarProyectiles();
-
-    // Actualizar enemigos
-    actualizarEnemigos();
-
-    // Verificar colisiones
-    verificarColisionesProyectiles();
-
-    // Limpiar proyectiles fuera de pantalla
-    limpiarProyectiles();
-
-    // Verificar condiciones
-    verificarCondicionesVictoria();
-}
-
-void Nivel3::verificarColisiones()
-{
-    // Este método se requiere por la clase base, pero usamos verificarColisionesProyectiles
-    verificarColisionesProyectiles();
-}
-
 void Nivel3::actualizarProyectiles()
 {
-    for (Proyectil *proyectil : proyectiles) {
-        proyectil->actualizar();
+    for (int i = 0; i < proyectiles.size(); i++) {
+        Proyectil *p = proyectiles[i];
+
+        if (!p->estaActivo()) {
+            escena->removeItem(p);
+            delete p;
+            proyectiles.removeAt(i);
+            i--;
+            continue;
+        }
+
+        p->actualizar(DT);
+
+        if (p->getY() > escena->height() || p->getX() > escena->width() || p->getX() < 0) {
+            p->desactivar();
+        }
     }
 }
 
 void Nivel3::actualizarEnemigos()
 {
-    for (int i = 0; i < enemigos.size(); ++i) {
-        Enemigo *enemigo = enemigos[i];
+    for (Enemigo *e : enemigos) {
+        if (e && e->estaVivo()) {
+            QPointF pos = e->pos();
+            qreal velocidad = e->esFuerteEnemigo() ? 1.5 : 2.0;
+            pos.setX(pos.x() - velocidad);
+            e->setPos(pos);
 
-        // Mover enemigo hacia la izquierda (hacia la puerta)
-        enemigo->setPos(enemigo->x() - 2, enemigo->y());
-
-        // Si llega a la puerta, el jugador pierde
-        if (enemigo->x() <= 150) {
-            finalizarNivel(false);
-            QMessageBox::critical(this, "Derrota", "Los enemigos han llegado a la puerta de Roma.");
-            return;
+            if (pos.x() < 200) {
+                nivelActivo = false;
+                timerJuego->stop();
+                timerGeneracion->stop();
+                if (timerSegundo) timerSegundo->stop();
+                finalizarNivel(false);
+                return;
+            }
         }
     }
 }
 
-void Nivel3::verificarColisionesProyectiles()
+void Nivel3::verificarColisiones()
 {
-    for (int i = 0; i < proyectiles.size(); ++i) {
-        Proyectil *proyectil = proyectiles[i];
-        QRectF rectProyectil = proyectil->sceneBoundingRect();
+    for (Proyectil *p : proyectiles) {
+        if (!p->estaActivo()) continue;
 
-        for (int j = 0; j < enemigos.size(); ++j) {
-            Enemigo *enemigo = enemigos[j];
-            QRectF rectEnemigo = enemigo->getBoundingBox();
+        QRectF rectProyectil(p->getX() - 12, p->getY() - 12, 25, 25);
+
+        for (Enemigo *e : enemigos) {
+            if (!e || !e->estaVivo()) continue;
+
+            QRectF rectEnemigo = e->getBoundingBox();
 
             if (rectProyectil.intersects(rectEnemigo)) {
-                // Golpe exitoso
-                enemigo->recibirDanio(100); // Daño suficiente para matar enemigos normales
-
-                // Eliminar proyectil
-                escena->removeItem(proyectil);
-                proyectiles.removeAt(i);
-                delete proyectil;
-                i--;
-
-                // Si el enemigo murió, eliminarlo
-                if (!enemigo->estaVivo()) {
-                    escena->removeItem(enemigo);
-                    enemigos.removeAt(j);
-                    delete enemigo;
-                    enemigosEliminados++;
-                }
-
+                int danio = e->esFuerteEnemigo() ? 75 : 50;
+                e->recibirDanio(danio);
+                p->desactivar();
                 break;
             }
         }
     }
 }
 
-void Nivel3::limpiarProyectiles()
+void Nivel3::actualizarJuego()
 {
-    for (int i = 0; i < proyectiles.size(); ++i) {
-        Proyectil *proyectil = proyectiles[i];
+    if (!nivelActivo) return;
 
-        if (!proyectil->estaDentroDelLimite()) {
-            escena->removeItem(proyectil);
-            proyectiles.removeAt(i);
-            delete proyectil;
-            i--;
+    // Control de ángulo
+    if (teclaIzquierda && catapulta) {
+        catapulta->setAngulo(catapulta->getAngulo() + 0.5);
+    }
+    else if (teclaDerecha && catapulta) {
+        catapulta->setAngulo(catapulta->getAngulo() - 0.5);
+    }
+
+    if (teclaAtaque) {
+        disparar();
+        teclaAtaque = false;
+    }
+
+    actualizarProyectiles();
+    actualizarEnemigos();
+    verificarColisiones();
+
+    // Victoria
+    if (enemigosNormalesEliminados >= 7 && enemigosInteligentesEliminados >= 3) {
+        bool hayVivos = false;
+        for (Enemigo *e : enemigos) {
+            if (e && e->estaVivo()) {
+                hayVivos = true;
+                break;
+            }
+        }
+
+        if (!hayVivos) {
+            nivelActivo = false;
+            timerJuego->stop();
+            timerGeneracion->stop();
+            if (timerSegundo) timerSegundo->stop();
+
+            QTimer::singleShot(1000, this, [this]() {
+                finalizarNivel(true);
+            });
         }
     }
 }
 
-void Nivel3::verificarCondicionesVictoria()
-{
-    // Si todos los enemigos de la oleada fueron eliminados
-    if (enemigos.isEmpty() && !oleadaCompletada) {
-        oleadaCompletada = true;
-        contadorOleada = 0;
-
-        if (oleadaActual < 3) {
-            oleadaActual++;
-            QMessageBox::information(this, "Oleada completada",
-                                     QString("¡Oleada %1 completada!\nPreparate para la siguiente oleada.").arg(oleadaActual - 1));
-            generarOleada();
-        } else {
-            // Victoria total
-            finalizarNivel(true);
-            QMessageBox::information(this, "Victoria", "¡Has defendido Roma exitosamente!");
-        }
-    }
-}

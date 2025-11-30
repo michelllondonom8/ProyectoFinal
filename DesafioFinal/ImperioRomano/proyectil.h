@@ -1,41 +1,29 @@
 #ifndef PROYECTIL_H
 #define PROYECTIL_H
 
-#include <QGraphicsEllipseItem>
-#include <QObject>
-#include <QBrush>      // ← FALTABA
-#include <QPen>
+#include <QGraphicsPixmapItem>
 
-class Proyectil : public QObject, public QGraphicsEllipseItem
+class Proyectil : public QObject, public QGraphicsPixmapItem
 {
-    Q_OBJECT
-
 public:
-    explicit Proyectil(qreal x, qreal y, qreal velX, qreal velY, QObject *parent = nullptr);
+    Proyectil(double x0, double y0, double angulo, double velocidadInicial, double gravedad);
 
-    // Métodos principales
-    void actualizar();
-    bool estaDentroDelLimite() const;
+    void actualizar(double dt);
 
-    // Getters
-    qreal getVelocidadX() const { return velocidadX; }
-    qreal getVelocidadY() const { return velocidadY; }
-    qreal getAngulo() const { return angulo; }
+    double getX() const { return x; }
+    double getY() const { return y; }
+    double getVx() const { return vx; }
+    double getVy() const { return vy; }
 
-    // Setters
-    void setVelocidadX(qreal vel) { velocidadX = vel; }
-    void setVelocidadY(qreal vel) { velocidadY = vel; }
+    bool estaActivo() const { return activo; }
+    void desactivar() { activo = false; }
 
-signals:
-    void fueraDeLimites();
+    double getVelocidadActual() const;
 
 private:
-    qreal velocidadX;
-    qreal velocidadY;
-    qreal angulo;
-    const qreal gravedad = 0.5;
-
-    void aplicarFisica();
+    double x, y;
+    double vx, vy;
+    double gravedad;
+    bool activo;
 };
-
 #endif // PROYECTIL_H

@@ -254,6 +254,7 @@ void Gladiador::setVida(int nuevaVida)
     if (vida == 0) {
         estadoActual = MUERTO;
         frameActual = 0;
+        contadorFrame = 0;
         emit murio();
     }
 }

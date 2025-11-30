@@ -1,47 +1,49 @@
-#include "proyectil.h"
+#include "Proyectil.h"
 #include <QtMath>
+#include <QDebug>
 
-Proyectil::Proyectil(qreal x, qreal y, qreal velX, qreal velY, QObject *parent)
-    : QObject(parent),
-    QGraphicsEllipseItem(0, 0, 20, 20),
-    velocidadX(velX),
-    velocidadY(velY),
-    angulo(0)
+Proyectil::Proyectil(double x0, double y0, double angulo,
+                     double velocidadInicial, double g)
+    : x(x0),
+    y(y0),
+    gravedad(g),
+    activo(true)
 {
+    double anguloRad = angulo * M_PI / 180.0;
+
+    vx = velocidadInicial * qCos(anguloRad);
+    vy = -velocidadInicial * qSin(anguloRad);
+
+    QPixmap sprite(":/images/piedra_de_caida.png");
+
+    if (sprite.isNull()) {
+        qDebug() << "Error: No se pudo cargar proyectil.png";
+        sprite = QPixmap(25, 25);
+        sprite.fill(QColor(100, 100, 100));
+    }
+
+    sprite = sprite.scaled(25, 25, Qt::KeepAspectRatio, Qt::SmoothTransformation);
+    setPixmap(sprite);
+
+    setOffset(-pixmap().width() / 2, -pixmap().height() / 2);
+
     setPos(x, y);
-    setBrush(QBrush(Qt::gray));
-    setPen(QPen(Qt::darkGray, 2));
+    setZValue(15);
 }
 
-void Proyectil::actualizar()
+void Proyectil::actualizar(double dt)
 {
-    aplicarFisica();
+    if (!activo) return;
 
-    // Mover el proyectil
-    setPos(x() + velocidadX, y() + velocidadY);
+    vy += gravedad * dt;
 
-    // Verificar si está fuera de límites
-    if (!estaDentroDelLimite()) {
-        emit fueraDeLimites();
-    }
+    x += vx * dt;
+    y += vy * dt;
+
+    setPos(x, y);
 }
 
-void Proyectil::aplicarFisica()
+double Proyectil::getVelocidadActual() const
 {
-    // Aplicar gravedad (tiro parabólico)
-    velocidadY += gravedad;
-
-    // Calcular ángulo actual de la trayectoria
-    if (velocidadX != 0) {
-        angulo = qRadiansToDegrees(qAtan2(velocidadY, velocidadX));
-    }
-}
-
-bool Proyectil::estaDentroDelLimite() const
-{
-    // Verificar si el proyectil está dentro de los límites de la escena
-    qreal posX = x();
-    qreal posY = y();
-
-    return (posX >= -50 && posX <= 1250 && posY >= -50 && posY <= 650);
+    return qSqrt(vx * vx + vy * vy);
 }

@@ -2,51 +2,51 @@
 #define NIVEL3_H
 
 #include "nivel.h"
+#include "Catapulta.h"
+#include "Proyectil.h"
 #include <QList>
-#include <QMouseEvent>
+#include <QTimer>
 
 class Enemigo;
-class Catapulta;
-class Proyectil;
 
 class Nivel3 : public Nivel
 {
     Q_OBJECT
-
 public:
     explicit Nivel3(QWidget *parent = nullptr);
     ~Nivel3();
 
 protected:
-    // Implementación de métodos virtuales puros de Nivel
     void inicializarNivel() override;
     void actualizarJuego() override;
     void verificarColisiones() override;
     void cargarFondo() override;
 
-    // Métodos específicos de Nivel3
-    void crearCatapulta();
-    void generarOleada();
-    void actualizarProyectiles();
-    void actualizarEnemigos();
-    void verificarColisionesProyectiles();
-    void limpiarProyectiles();
-    void verificarCondicionesVictoria();
-
-    // Evento de mouse para disparar
-    void mousePressEvent(QMouseEvent *event) override;
-
 private:
+    void crearCatapulta();
+    void disparar();
+    void actualizarProyectiles();
+
     Catapulta *catapulta;
-    QList<Enemigo*> enemigos;
+    bool puedeDisparar;
     QList<Proyectil*> proyectiles;
 
-    int oleadaActual;
-    int enemigosEliminados;
-    bool oleadaCompletada;
-    int contadorOleada;
+    void generarEnemigo(bool fuerte);
+    void actualizarEnemigos();
+    QList<Enemigo*> enemigos;
 
+    int enemigosNormalesGenerados;
+    int enemigosNormalesEliminados;
+    int enemigosInteligentesGenerados;
+    int enemigosInteligentesEliminados;
+
+    QTimer *timerGeneracion;
     QTimer *timerSegundo;
+    int contadorGeneracion;
+
+    const double GRAVEDAD = 0.5;
+    const double VELOCIDAD_INICIAL = 12.0;
+    const double DT = 1.0;
 };
 
 #endif // NIVEL3_H

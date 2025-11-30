@@ -63,8 +63,10 @@ void Nivel2::inicializarNivel()
     puerta = new QGraphicsPixmapItem();
 
     QPixmap spritePuerta(":/images/Puerta.png");
-    puerta->setPixmap(spritePuerta.scaled(120, 200, Qt::IgnoreAspectRatio, Qt::SmoothTransformation));
-    puerta->setPos(distanciaObjetivo, escena->height() - 200);
+    puerta->setPixmap(spritePuerta.scaled(150, 220, Qt::IgnoreAspectRatio, Qt::SmoothTransformation));
+    qreal distanciaPuerta = 8500;
+    puerta->setPos(distanciaPuerta, escena->height() - 190);
+    puerta->setZValue(100);
     escena->addItem(puerta);
 
     spriteExplosion = new QGraphicsPixmapItem();
@@ -103,10 +105,10 @@ void Nivel2::crearFondos()
     QPixmap f(":/images/Nivel2_fondo.jpeg");
     f = f.scaled(escena->width(), escena->height(), Qt::IgnoreAspectRatio, Qt::SmoothTransformation);
 
-    for (int i = 0; i < 4; i++) {
+    for (int i = 0; i < 5; i++) {
         QGraphicsPixmapItem *fp = new QGraphicsPixmapItem(f);
         fp->setPos(i * escena->width(), 0);
-        fp->setZValue(-1);
+        fp->setZValue(-10);
         escena->addItem(fp);
         fondos.append(fp);
     }
@@ -169,13 +171,15 @@ void Nivel2::iniciarExplosion(const QPointF &p)
 
 void Nivel2::iniciarMuerteJugador()
 {
-    jugador->setPixmap(QPixmap(":/images/player_death_01.png"));
+    nivelActivo = false;
+    timerJuego->stop();
+    if (timerSegundo) timerSegundo->stop();
 
-    QTimer::singleShot(300, this, [this]() {
-        jugador->setPixmap(QPixmap(":/images/player_death_02.png"));
-    });
+    // Usar el sistema de animación del gladiador en vez de cambiar pixmap directamente
+    jugador->setVida(0);  // Esto activa el estado MUERTO en gladiador
 
-    QTimer::singleShot(1500, this, [this]() {
+    // Esperar a que se vea la animación de muerte del gladiador
+    QTimer::singleShot(2000, this, [this]() {
         finalizarNivel(false);
     });
 }

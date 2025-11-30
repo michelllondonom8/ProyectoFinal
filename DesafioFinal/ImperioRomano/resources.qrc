@@ -39,5 +39,7 @@
         <file>images/enemigo_muerte4.png</file>
         <file>images/Puerta.png</file>
         <file>images/Nivel2_fondo.jpeg</file>
+        <file>images/catapulta_1.png</file>
+        <file>images/piedra_de_caida.png</file>
     </qresource>
 </RCC>

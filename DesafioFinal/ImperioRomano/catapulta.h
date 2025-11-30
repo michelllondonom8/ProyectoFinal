@@ -2,53 +2,30 @@
 #define CATAPULTA_H
 
 #include <QGraphicsPixmapItem>
-#include <QObject>
 #include <QPixmap>
-#include <QList>
-#include "proyectil.h"
 
-class Catapulta : public QObject, public QGraphicsPixmapItem
+class Catapulta : public QGraphicsPixmapItem
 {
-    Q_OBJECT
-
 public:
-    explicit Catapulta(QObject *parent = nullptr);
+    Catapulta(double x, double y);
 
-    // Métodos principales
-    void actualizar();
-    Proyectil* disparar();
+    void setAngulo(double angulo);
+    double getAngulo() const { return anguloActual; }
 
-    // Getters
-    qreal getAngulo() const { return angulo; }
-    qreal getPosX() const { return posX; }
-    qreal getPosY() const { return posY; }
-    qreal getVelocidadAngulo() const { return velocidadAngulo; }
-    bool estaActivo() const { return activo; }
+    void animarDisparo();
+    void restaurarPosicion();
 
-    // Setters
-    void setAngulo(qreal nuevoAngulo) { angulo = nuevoAngulo; }
-    void setPosX(qreal x) { posX = x; }
-    void setPosY(qreal y) { posY = y; }
-    void setActivo(bool estado) { activo = estado; }
-
-signals:
-    void proyectilDisparado(Proyectil *proyectil);
+    double getPosX() const { return posX; }
+    double getPosY() const { return posY; }
+    void getPuntoLanzamiento(double &x, double &y) const;
 
 private:
-    // Atributos
-    qreal posX;
-    qreal posY;
-    qreal angulo;
-    qreal velocidadAngulo;
-    bool activo;
-    bool subiendo;
-
-    // Sprites
-    QPixmap spriteCatapulta;
-
-    void cargarSprite();
-    void actualizarSprite();
-    void oscilar();
+    double posX;
+    double posY;
+    double anguloActual;
+    double anguloMinimo;
+    double anguloMaximo;
+    double longitudBrazo;
 };
 
 #endif // CATAPULTA_H
