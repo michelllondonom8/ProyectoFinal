@@ -33,7 +33,6 @@ Nivel::~Nivel()
 
 void Nivel::configurarEscena()
 {
-
     QScreen *screen = QGuiApplication::primaryScreen();
     QRect screenGeometry = screen->geometry();
     int anchoVentana = screenGeometry.width();
@@ -41,7 +40,6 @@ void Nivel::configurarEscena()
     escena = new QGraphicsScene(0, 0, anchoVentana, altoVentana, this);
     setScene(escena);
 
-    // Configuración de la vista
     setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
     setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
     setFixedSize(anchoVentana, altoVentana);
@@ -53,12 +51,11 @@ void Nivel::configurarEscena()
 
     timerJuego = new QTimer(this);
     connect(timerJuego, &QTimer::timeout, this, &Nivel::actualizarJuego);
-    timerJuego->start(16); // ~60 FPS
+    timerJuego->start(16);
 }
 
 void Nivel::configurarHUD()
 {
-    // Barra de vida
     barraVida = new QProgressBar();
     barraVida->setRange(0, 100);
     barraVida->setValue(100);
@@ -78,7 +75,6 @@ void Nivel::configurarHUD()
         );
     barraVida->setFixedSize(200, 30);
 
-    // Label de tiempo
     labelTiempo = new QLabel("Tiempo: 1:00");
     labelTiempo->setStyleSheet(
         "QLabel {"
@@ -91,7 +87,6 @@ void Nivel::configurarHUD()
         "}"
         );
 
-    // Agregar widgets a la escena
     QGraphicsProxyWidget *proxyVida = escena->addWidget(barraVida);
     proxyVida->setPos(10, 10);
 
@@ -155,7 +150,9 @@ void Nivel::keyReleaseEvent(QKeyEvent *event)
 void Nivel::finalizarNivel(bool exitoso)
 {
     nivelActivo = false;
-    timerJuego->stop();
+    if (timerJuego) {
+        timerJuego->stop();
+    }
 
     if (exitoso) {
         emit nivelCompletado(numeroNivel);

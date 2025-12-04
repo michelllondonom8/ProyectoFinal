@@ -1,204 +1,95 @@
 #include "gladiador.h"
+#include "fisica.h"
 #include <QGraphicsScene>
-#include <QFile>
-#include <QTextStream>
-#include <QDebug>
-#include <QRegularExpression>
+#include <QTransform>
+#include <QPixmap>
 
 Gladiador::Gladiador(QObject *parent)
-    : QObject(parent),
-    QGraphicsPixmapItem(),
-    vida(100),
-    velocidadX(0),
-    velocidadY(0),
-    velocidadMaxima(5.0),
-    aceleracion(0.8),
-    fuerzaSalto(-15.0),
-    gravedad(0.8),
-    enSuelo(true),
-    saltando(false),
-    atacando(false),
-    mirandoDerecha(true),
-    frameActual(0),
-    contadorFrame(0),
-    framesPorAnimacion(8),
-    estadoActual(PARADO)
+    : QObject(parent)
+    , QGraphicsPixmapItem()
+    , vida(100)
+    , velocidadX(0)
+    , velocidadY(0)
+    , velocidadMaxima(Fisica::VELOCIDAD_HORIZONTAL)
+    , aceleracion(Fisica::ACELERACION)
+    , fuerzaSalto(Fisica::FUERZA_SALTO)
+    , gravedad(Fisica::GRAVEDAD)
+    , enSuelo(true)
+    , saltando(false)
+    , atacando(false)
+    , mirandoDerecha(true)
+    , frameActual(0)
+    , contadorFrame(0)
+    , framesPorAnimacion(Fisica::FRAMES_POR_ANIMACION)
+    , estadoActual(PARADO)
+    , ataqueContador(0)
 {
-    cargarSprites();
-    setPos(100, 400);
+    cargarSpritesIndividuales();
+
+    QPixmap startPx;
+    if (!animIdle.isEmpty()) startPx = animIdle.at(0);
+    if (startPx.isNull()) {
+        startPx = QPixmap(110, 140);
+        startPx.fill(Qt::transparent);
+    }
+    startPx = startPx.scaled(110, 140, Qt::IgnoreAspectRatio, Qt::SmoothTransformation);
+    setPixmap(startPx);
+    setOffset(-pixmap().width() / 2, -pixmap().height());
 }
 
-void Gladiador::cargarSprites()
+void Gladiador::cargarSpritesIndividuales()
 {
-    // Cargar la hoja de sprites completa
-    spriteSheet.load(":/images/jugador.png");
+    animIdle.clear();
+    animIdle.append(QPixmap(":/images/idle_01.jpeg"));
 
-    if (spriteSheet.isNull()) {
-        qDebug() << "Error: No se pudo cargar SpritesaUsar.png";
-        // Crear placeholder
-        spriteSheet = QPixmap(800, 600);
-        spriteSheet.fill(Qt::red);
-    }
+    animWalk.clear();
+    animWalk.append(QPixmap(":/images/player_walk_01.png"));
+    animWalk.append(QPixmap(":/images/player_walk_02.png"));
+    animWalk.append(QPixmap(":/images/player_walk_03.png"));
 
-    // Cargar coordenadas desde archivo de texto
-    cargarCoordenadasDesdeArchivo("gladiador.txt");
+    animJump.clear();
+    animJump.append(QPixmap(":/images/player_jump.png"));
 
-    // Organizar sprites por tipo
-    organizarSpritesPorTipo();
+    animAttack.clear();
+    animAttack.append(QPixmap(":/images/player_attack_01.png"));
+    animAttack.append(QPixmap(":/images/player_attack_02.png"));
 
-    // Establecer sprite inicial
-    if (!spritesParado.isEmpty()) {
-        setPixmap(obtenerSpriteActual());
-    }
-}
-
-void Gladiador::cargarCoordenadasDesdeArchivo(const QString &rutaArchivo)
-{
-    QFile archivo(rutaArchivo);
-
-    if (!archivo.open(QIODevice::ReadOnly | QIODevice::Text)) {
-        qDebug() << "Error: No se pudo abrir" << rutaArchivo;
-        return;
-    }
-
-    QTextStream in(&archivo);
-
-    // Leer línea por línea
-    while (!in.atEnd()) {
-        QString linea = in.readLine().trimmed();
-
-        // Ignorar líneas vacías o comentarios
-        if (linea.isEmpty() || linea.startsWith("#")) {
-            continue;
-        }
-
-        // Dividir la línea por espacios
-        QStringList partes = linea.split(QRegularExpression("\\s+"), Qt::SkipEmptyParts);
-
-        // Verificar que tenga el formato correcto: id x y ancho alto tipo
-        if (partes.size() >= 6) {
-            SpriteInfo info;
-            info.id = partes[0].toInt();
-            info.x = partes[1].toInt();
-            info.y = partes[2].toInt();
-            info.ancho = partes[3].toInt();
-            info.alto = partes[4].toInt();
-            info.tipo = partes[5].toInt();
-
-            sprites.append(info);
-        }
-    }
-
-    archivo.close();
-    qDebug() << "Sprites cargados:" << sprites.size();
-}
-
-void Gladiador::organizarSpritesPorTipo()
-{
-    // Separar sprites por tipo de animación
-    for (const SpriteInfo &sprite : sprites) {
-        switch (sprite.tipo) {
-        case 0:
-            spritesParado.append(sprite);
-            break;
-        case 1:
-            spritesCaminando.append(sprite);
-            break;
-        case 2:
-            spritesSaltando.append(sprite);
-            break;
-        case 3:
-            spritesAtacando.append(sprite);
-            break;
-        }
-    }
-
-    qDebug() << "Parado:" << spritesParado.size()
-             << "Caminando:" << spritesCaminando.size()
-             << "Saltando:" << spritesSaltando.size()
-             << "Atacando:" << spritesAtacando.size();
-}
-
-QPixmap Gladiador::obtenerSpriteActual()
-{
-    QVector<SpriteInfo> *spritesActuales = nullptr;
-
-    // Seleccionar el vector de sprites según el estado
-    switch (estadoActual) {
-    case PARADO:
-        spritesActuales = &spritesParado;
-        break;
-    case CAMINANDO:
-        spritesActuales = &spritesCaminando;
-        break;
-    case SALTANDO:
-        spritesActuales = &spritesSaltando;
-        break;
-    case ATACANDO:
-        spritesActuales = &spritesAtacando;
-        break;
-    }
-
-    // Verificar que haya sprites disponibles
-    if (!spritesActuales || spritesActuales->isEmpty()) {
-        return QPixmap(50, 50); // Placeholder
-    }
-
-    // Asegurar que el frame actual esté dentro del rango
-    if (frameActual >= spritesActuales->size()) {
-        frameActual = 0;
-    }
-
-    // Obtener información del sprite actual
-    const SpriteInfo &info = spritesActuales->at(frameActual);
-
-    // Extraer el sprite de la hoja usando las coordenadas
-    QPixmap sprite = spriteSheet.copy(info.x, info.y, info.ancho, info.alto);
-
-    // Escalar para que tenga un tamaño consistente (opcional)
-    sprite = sprite.scaled(80, 120, Qt::KeepAspectRatio, Qt::SmoothTransformation);
-
-    // Voltear horizontalmente si mira a la izquierda
-    if (!mirandoDerecha) {
-        sprite = sprite.transformed(QTransform().scale(-1, 1));
-    }
-
-    return sprite;
+    animDeath.clear();
+    animDeath.append(QPixmap(":/images/player_death_01.png"));
+    animDeath.append(QPixmap(":/images/player_death_02.png"));
 }
 
 void Gladiador::moverIzquierda()
 {
     velocidadX = -velocidadMaxima;
     mirandoDerecha = false;
-    if (enSuelo && !atacando) {
-        estadoActual = CAMINANDO;
-    }
+    if (enSuelo && !atacando) estadoActual = CAMINANDO;
 }
 
 void Gladiador::moverDerecha()
 {
     velocidadX = velocidadMaxima;
     mirandoDerecha = true;
-    if (enSuelo && !atacando) {
-        estadoActual = CAMINANDO;
-    }
+    if (enSuelo && !atacando) estadoActual = CAMINANDO;
 }
 
 void Gladiador::saltar()
 {
-    if (enSuelo && !saltando) {
+    if (enSuelo && !saltando && !atacando) {
         velocidadY = fuerzaSalto;
         enSuelo = false;
         saltando = true;
         estadoActual = SALTANDO;
         frameActual = 0;
+        contadorFrame = 0;
     }
 }
 
 void Gladiador::atacar()
 {
-    if (!atacando) {
+    if (!atacando && estadoActual != MUERTO) {
         atacando = true;
+        ataqueContador = framesPorAnimacion; // duración corta del ataque
         estadoActual = ATACANDO;
         frameActual = 0;
         contadorFrame = 0;
@@ -208,125 +99,143 @@ void Gladiador::atacar()
 void Gladiador::detener()
 {
     velocidadX = 0;
-    if (enSuelo && !atacando) {
-        estadoActual = PARADO;
-    }
+    if (enSuelo && !atacando) estadoActual = PARADO;
 }
 
 void Gladiador::aplicarGravedad()
 {
     if (!enSuelo) {
         velocidadY += gravedad;
-
-        if (velocidadY > 20) {
-            velocidadY = 20;
-        }
+        if (velocidadY > Fisica::MAX_CAIDA) velocidadY = Fisica::MAX_CAIDA;
     }
 }
 
 void Gladiador::actualizar()
 {
-    // Aplicar física
     aplicarGravedad();
-
-    // Mover el gladiador
+    qreal oldX = x();
+    qreal oldY = y();
     setPos(x() + velocidadX, y() + velocidadY);
 
-    // Verificar límites de la escena
-    if (scene()) {
-        QRectF limites = scene()->sceneRect();
+    if (!scene()) return;
 
-        if (x() < 0) {
-            setPos(0, y());
-        }
+    qreal suelo = scene()->height();
 
-        if (x() + 80 > limites.width()) {
-            setPos(limites.width() - 80, y());
-        }
-
-        // Suelo
-        if (y() >= 480) {
-            setPos(x(), 480);
-            velocidadY = 0;
-            enSuelo = true;
-            saltando = false;
-
-            if (velocidadX == 0 && !atacando) {
-                estadoActual = PARADO;
-            }
-        }
+    if (y() >= suelo) {
+        setPos(x(), suelo);
+        velocidadY = 0;
+        enSuelo = true;
+        saltando = false;
+        if (!atacando) estadoActual = (velocidadX == 0) ? PARADO : CAMINANDO;
     }
 
-    // Actualizar animación
-    actualizarAnimacion();
+    QRectF lim = scene()->sceneRect();
+    qreal w = pixmap().width();
 
-    // Actualizar sprite visual
-    actualizarSprite();
+    if (x() - w/2 < lim.left()) setPos(w/2, y());
+    if (x() + w/2 > lim.right()) setPos(lim.right() - w/2, y());
 
-    // Contador de ataque
     if (atacando) {
-        contadorFrame++;
-        // Terminar ataque cuando se completen todos los frames
-        if (frameActual >= spritesAtacando.size() - 1 && contadorFrame >= framesPorAnimacion) {
+        ataqueContador--;
+        if (ataqueContador <= 0) {
             atacando = false;
-            contadorFrame = 0;
-            frameActual = 0;
             estadoActual = enSuelo ? PARADO : SALTANDO;
+            frameActual = 0;
+            contadorFrame = 0;
         }
     }
+
+    actualizarAnimacion();
+    actualizarSprite();
 }
 
 void Gladiador::actualizarAnimacion()
 {
     contadorFrame++;
+    if (contadorFrame < framesPorAnimacion) return;
+    contadorFrame = 0;
+    frameActual++;
 
-    // Cambiar de frame cuando el contador llegue al límite
-    if (contadorFrame >= framesPorAnimacion) {
-        contadorFrame = 0;
-        frameActual++;
-
-        // Determinar número máximo de frames según el estado
-        int maxFrames = 1;
-
-        switch (estadoActual) {
-        case PARADO:
-            maxFrames = spritesParado.size();
-            break;
-        case CAMINANDO:
-            maxFrames = spritesCaminando.size();
-            break;
-        case SALTANDO:
-            maxFrames = spritesSaltando.size();
-            break;
-        case ATACANDO:
-            maxFrames = spritesAtacando.size();
-            break;
-        }
-
-        // Reiniciar animación (excepto ataque, que se maneja aparte)
-        if (frameActual >= maxFrames) {
-            if (estadoActual != ATACANDO) {
-                frameActual = 0;
-            }
-        }
+    int max = 1;
+    switch (estadoActual) {
+    case PARADO: max = animIdle.size(); break;
+    case CAMINANDO: max = animWalk.size(); break;
+    case SALTANDO: max = animJump.size(); break;
+    case ATACANDO: max = animAttack.size(); break;
+    case MUERTO: max = animDeath.size(); break;
     }
+
+    if (max <= 0) { frameActual = 0; return; }
+    if (frameActual >= max) frameActual = 0;
 }
 
+QPixmap Gladiador::obtenerSpriteActual()
+{
+    QVector<QPixmap>* v = nullptr;
+    switch (estadoActual) {
+    case PARADO: v = &animIdle; break;
+    case CAMINANDO: v = &animWalk; break;
+    case SALTANDO: v = &animJump; break;
+    case ATACANDO: v = &animAttack; break;
+    case MUERTO: v = &animDeath; break;
+    }
+
+    if (!v || v->isEmpty()) {
+        QPixmap ph(110, 140);
+        ph.fill(Qt::transparent);
+        return ph;
+    }
+
+    if (frameActual < 0 || frameActual >= v->size()) frameActual = 0;
+
+    QPixmap px = v->at(frameActual);
+    if (px.isNull()) {
+        QPixmap ph(110, 140);
+        ph.fill(Qt::transparent);
+        return ph;
+    }
+
+    px = px.scaled(110, 140, Qt::IgnoreAspectRatio, Qt::SmoothTransformation);
+
+    if (!mirandoDerecha) px = px.transformed(QTransform().scale(-1, 1));
+
+    return px;
+}
+void Gladiador::aplicarKnockback(qreal fuerzaX)
+{
+    velocidadX = fuerzaX;
+    // Opcional: pequeño salto
+    if (enSuelo) {
+        velocidadY = -5.0;
+        enSuelo = false;
+    }
+}
 void Gladiador::actualizarSprite()
 {
-    setPixmap(obtenerSpriteActual());
+    QPixmap px = obtenerSpriteActual();
+    if (px.isNull()) return;
+    setPixmap(px);
+    setOffset(-px.width() / 2, -px.height());
+}
+
+QRectF Gladiador::getBoundingBox() const
+{
+    qreal w = pixmap().width()* 0.6;
+    qreal h = pixmap().height()* 0.8;
+    qreal offsetX = (pixmap().width() - w) / 2;
+    qreal offsetY = (pixmap().height() - h);
+    return QRectF(x() - pixmap().width()/2 + offsetX,
+                  y() - pixmap().height() + offsetY,
+                  w, h);
 }
 
 void Gladiador::setVida(int nuevaVida)
 {
-    vida = nuevaVida;
-
-    if (vida < 0) vida = 0;
-    if (vida > 100) vida = 100;
-
+    vida = qBound(0, nuevaVida, 100);
     emit vidaCambiada(vida);
-
-    if (vida <= 0) {
+    if (vida == 0) {
+        estadoActual = MUERTO;
+        frameActual = 0;
         emit murio();
     }
 }
@@ -336,7 +245,31 @@ void Gladiador::recibirDanio(int danio)
     setVida(vida - danio);
 }
 
-QRectF Gladiador::getBoundingBox() const
+void Gladiador::resolverColision(const QRectF &obstaculoBBox)
 {
-    return QRectF(x(), y(), 80, 120);
+    QRectF misBBox = getBoundingBox();
+
+    if (!misBBox.intersects(obstaculoBBox)) return;
+
+    // Calcular cuánto se sobreponen
+    qreal overlapLeft = misBBox.right() - obstaculoBBox.left();
+    qreal overlapRight = obstaculoBBox.right() - misBBox.left();
+    qreal overlapTop = misBBox.bottom() - obstaculoBBox.top();
+    qreal overlapBottom = obstaculoBBox.bottom() - misBBox.top();
+    qreal minOverlap = qMin(qMin(overlapLeft, overlapRight), qMin(overlapTop, overlapBottom));
+
+    if (minOverlap == overlapLeft) {
+        setPos(x() - overlapLeft, y());
+        velocidadX = 0;
+    } else if (minOverlap == overlapRight) {
+        setPos(x() + overlapRight, y());
+        velocidadX = 0;
+    } else if (minOverlap == overlapTop) {
+        setPos(x(), y() - overlapTop);
+        velocidadY = 0;
+    } else if (minOverlap == overlapBottom) {
+        setPos(x(), y() + overlapBottom);
+        velocidadY = 0;
+    }
 }
+
