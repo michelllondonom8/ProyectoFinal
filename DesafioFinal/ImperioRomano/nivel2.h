@@ -7,11 +7,12 @@
 #include <QTimer>
 #include <QGraphicsRectItem>
 #include <QSoundEffect>
+#include <QMediaPlayer>
+#include <QAudioOutput>
 
 class Nivel2 : public Nivel
 {
     Q_OBJECT
-
 public:
     explicit Nivel2(QWidget *parent = nullptr);
     ~Nivel2();
@@ -33,19 +34,24 @@ private:
     int repeticionesIntro;
     bool explosionActiva;
 
-    QGraphicsRectItem *puerta;
+    QGraphicsPixmapItem *puerta;
     QGraphicsPixmapItem *spriteExplosion;
     QTimer *timerExplosion;
     int frameExplosion;
 
     QSoundEffect fxRock;
     QSoundEffect fxPillar;
+    QMediaPlayer *musicaNivel;
+    QAudioOutput *audioOutput;
 
     void crearFondos();
     void generarObstaculos();
     void actualizarObstaculos();
     void iniciarExplosion(const QPointF &p);
     void iniciarMuerteJugador();
+    void actualizarTemporizador();
+    QTimer *timerSegundo;
+    int tiempoObjetivo;
 };
 
 #endif

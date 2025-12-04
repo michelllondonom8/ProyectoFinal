@@ -14,7 +14,11 @@ Nivel2::Nivel2(QWidget *parent)
     puerta(nullptr),
     spriteExplosion(nullptr),
     timerExplosion(new QTimer(this)),
-    frameExplosion(0)
+    frameExplosion(0),
+    timerSegundo(nullptr),
+    tiempoObjetivo(30),
+    musicaNivel(nullptr),
+    audioOutput(nullptr)
 {
     fxRock.setSource(QUrl("qrc:/sounds/rock_fall_1.wav"));
     fxRock.setLoopCount(1);
@@ -24,12 +28,26 @@ Nivel2::Nivel2(QWidget *parent)
     fxPillar.setLoopCount(1);
     fxPillar.setVolume(0.8);
 
+    tiempoRestante = 60;
     inicializarNivel();
 }
 
 Nivel2::~Nivel2()
 {
+    if (musicaNivel) {
+        musicaNivel->stop();
+        delete musicaNivel;
+        musicaNivel = nullptr;
+    }
+    if (audioOutput) {
+        delete audioOutput;
+        audioOutput = nullptr;
+    }
     qDeleteAll(obstaculos);
+    if (timerSegundo) {
+        timerSegundo->stop();
+        delete timerSegundo;
+    }
 }
 
 void Nivel2::inicializarNivel()
@@ -41,9 +59,25 @@ void Nivel2::inicializarNivel()
     jugador->setPos(200, escena->height());
     escena->addItem(jugador);
 
-    puerta = new QGraphicsRectItem(0,0,140,240);
-    puerta->setBrush(Qt::yellow);
-    puerta->setPos(distanciaObjetivo, escena->height() - 240);
+    connect(jugador, &Gladiador::vidaCambiada, this, [this](int vida) {
+        barraVida->setValue(vida);
+        if (vida <= 0) {
+            nivelActivo = false;
+            timerJuego->stop();
+            if (timerSegundo) timerSegundo->stop();
+
+            QTimer::singleShot(2000, this, [this]() {
+                finalizarNivel(false);
+            });
+        }
+    });
+    puerta = new QGraphicsPixmapItem();
+
+    QPixmap spritePuerta(":/images/Puerta.png");
+    puerta->setPixmap(spritePuerta.scaled(150, 220, Qt::IgnoreAspectRatio, Qt::SmoothTransformation));
+    qreal distanciaPuerta = 8500;
+    puerta->setPos(distanciaPuerta, escena->height() - 190);
+    puerta->setZValue(100);
     escena->addItem(puerta);
 
     spriteExplosion = new QGraphicsPixmapItem();
@@ -63,6 +97,22 @@ void Nivel2::inicializarNivel()
             iniciarMuerteJugador();
         }
     });
+    musicaNivel = new QMediaPlayer(this);
+    audioOutput = new QAudioOutput(this);
+    musicaNivel->setAudioOutput(audioOutput);
+    QUrl url = QUrl("qrc:/sounds/nivel2musica.mp3");
+
+
+    musicaNivel->setSource(url);
+
+    audioOutput->setVolume(0.45);
+    musicaNivel->setLoops(QMediaPlayer::Infinite);
+    musicaNivel->play();
+    timerSegundo = new QTimer(this);
+    connect(timerSegundo, &QTimer::timeout, this, &Nivel2::actualizarTemporizador);
+    timerSegundo->start(1000);
+    tiempoRestante = 60;
+    labelTiempo->setText(QString("Tiempo: 1:00"));
 
     nivelActivo = true;
 }
@@ -75,11 +125,12 @@ void Nivel2::cargarFondo()
 void Nivel2::crearFondos()
 {
     QPixmap f(":/images/Nivel2_fondo.jpeg");
-    f = f.scaled(escena->width(), escena->height(), Qt::IgnoreAspectRatio);
+    f = f.scaled(escena->width(), escena->height(), Qt::IgnoreAspectRatio, Qt::SmoothTransformation);
 
-    for (int i = 0; i < 3; i++) {
+    for (int i = 0; i < 5; i++) {
         QGraphicsPixmapItem *fp = new QGraphicsPixmapItem(f);
         fp->setPos(i * escena->width(), 0);
+        fp->setZValue(-10);
         escena->addItem(fp);
         fondos.append(fp);
     }
@@ -142,15 +193,40 @@ void Nivel2::iniciarExplosion(const QPointF &p)
 
 void Nivel2::iniciarMuerteJugador()
 {
-    jugador->setPixmap(QPixmap(":/images/player_death_01.png"));
+    nivelActivo = false;
+    timerJuego->stop();
+    if (timerSegundo) timerSegundo->stop();
 
-    QTimer::singleShot(300, this, [this]() {
-        jugador->setPixmap(QPixmap(":/images/player_death_02.png"));
-    });
+    // Usar el sistema de animación del gladiador en vez de cambiar pixmap directamente
+    jugador->setVida(0);  // Esto activa el estado MUERTO en gladiador
 
-    QTimer::singleShot(1500, this, [this]() {
+    // Esperar a que se vea la animación de muerte del gladiador
+    QTimer::singleShot(2000, this, [this]() {
         finalizarNivel(false);
     });
+}
+
+void Nivel2::actualizarTemporizador()
+{
+    if (!nivelActivo) return;
+
+    tiempoRestante--;
+
+    int minutos = tiempoRestante / 60;
+    int segundos = tiempoRestante % 60;
+
+    labelTiempo->setText(
+        QString("Tiempo: %1:%2")
+            .arg(minutos)
+            .arg(segundos, 2, 10, QChar('0')));
+    if (tiempoRestante <= 0) {
+        nivelActivo = false;
+        timerJuego->stop();
+        timerSegundo->stop();
+
+        finalizarNivel(false);
+    }
+
 }
 
 void Nivel2::verificarColisiones()
@@ -160,9 +236,7 @@ void Nivel2::verificarColisiones()
     QRectF rj = jugador->getBoundingBox();
 
     for (QGraphicsPixmapItem *o : obstaculos) {
-
         if (rj.intersects(o->sceneBoundingRect())) {
-
             QString tipo = o->data(0).toString();
 
             if (tipo == "piedra") {
@@ -176,17 +250,14 @@ void Nivel2::verificarColisiones()
             return;
         }
     }
+    if (puerta && rj.intersects(puerta->sceneBoundingRect())) {
+        nivelActivo = false;
+        timerJuego->stop();
+        if (timerSegundo) timerSegundo->stop();
 
-    if (rj.intersects(puerta->sceneBoundingRect())) {
-
-        if (repeticionesIntro < 2) {
-            repeticionesIntro++;
-            jugador->setPos(200, escena->height());
-            distanciaRecorrida = 0;
-            return;
-        }
-
-        finalizarNivel(true);
+        QTimer::singleShot(500, this, [this]() {
+            finalizarNivel(true);
+        });
     }
 }
 
@@ -202,14 +273,25 @@ void Nivel2::actualizarJuego()
     if (teclaSalto) { jugador->saltar(); teclaSalto = false; }
 
     jugador->actualizar();
+    qreal velocidadScroll = 2.5;
 
     for (QGraphicsPixmapItem *f : fondos) {
-        f->setX(f->x() - 2.5);
-        if (f->x() <= -escena->width())
-            f->setX(f->x() + escena->width() * 3);
+        f->setX(f->x() - velocidadScroll);
+        if (f->x() <= -escena->width()){
+            qreal maxX = -999999;
+            for (QGraphicsPixmapItem *fb : fondos) {
+                if (fb->x() > maxX) {
+                    maxX = fb->x();
+                }
+            }
+            f->setX(maxX + escena->width());
+        }
+    }
+    if (puerta) {
+        puerta->setX(puerta->x() - velocidadScroll);
     }
 
-    distanciaRecorrida += 2;
+    distanciaRecorrida += velocidadScroll;
 
     generarObstaculos();
     actualizarObstaculos();
