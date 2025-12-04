@@ -3,6 +3,8 @@
 
 #include "nivel.h"
 #include <QList>
+#include <QMediaPlayer>
+#include <QAudioOutput>
 
 class Enemigo;
 
@@ -15,21 +17,20 @@ public:
     ~Nivel1();
 
 protected:
-    // Implementación de métodos virtuales puros de Nivel
     void inicializarNivel() override;
     void actualizarJuego() override;
     void verificarColisiones() override;
     void cargarFondo() override;
-
-    // Métodos específicos de Nivel1
-    void crearEnemigos();
+    void generarEnemigo(int tipo);
+private slots:
     void actualizarTemporizador();
-    void verificarCondicionesVictoria();
-
 private:
     QList<Enemigo*> enemigos;
     QTimer *timerSegundo;
     int enemigosEliminados;
+    int tiempoTranscurrido;
+    QMediaPlayer *musicaNivel;
+    QAudioOutput *audioOutput;
 };
 
 #endif // NIVEL1_H

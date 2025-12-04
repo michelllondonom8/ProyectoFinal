@@ -5,9 +5,12 @@
 #include <QGraphicsPixmapItem>
 
 Nivel1::Nivel1(QWidget *parent)
-    : Nivel(1, nullptr),
+    : Nivel(1, parent),
     timerSegundo(nullptr),
-    enemigosEliminados(0)
+    enemigosEliminados(0),
+    tiempoTranscurrido(0),
+    musicaNivel(nullptr),
+    audioOutput(nullptr)
 {
     setWindowTitle("Nivel 1 - Coliseo Romano");
     inicializarNivel();
@@ -15,85 +18,128 @@ Nivel1::Nivel1(QWidget *parent)
 
 Nivel1::~Nivel1()
 {
+    if (musicaNivel) {
+        musicaNivel->stop();
+        delete musicaNivel;
+        musicaNivel = nullptr;
+    }
+    if (audioOutput) {
+        delete audioOutput;
+        audioOutput = nullptr;
+    }
     if (timerSegundo) {
         timerSegundo->stop();
         delete timerSegundo;
+        timerSegundo = nullptr;
     }
+    for (Enemigo *e : enemigos) {
+        if (e) {
+            escena->removeItem(e);
+            delete e;
+        }
+    }
+    enemigos.clear();
 }
 
 void Nivel1::inicializarNivel()
 {
     cargarFondo();
 
-    // Crear jugador
     jugador = new Gladiador();
     escena->addItem(jugador);
+    jugador->setPos(150, escena->height());
 
-    // Conectar señales del jugador
     connect(jugador, &Gladiador::vidaCambiada, this, [this](int vida) {
         barraVida->setValue(vida);
         if (vida <= 0) {
-            finalizarNivel(false);
-            QMessageBox::critical(this, "Derrota", "Has sido derrotado en el Coliseo.");
+            nivelActivo = false;
+            timerJuego->stop();
+            if (timerSegundo) timerSegundo->stop();
+            QTimer::singleShot(2000, this, [this]() {
+                finalizarNivel(false);
+            });
         }
     });
+    generarEnemigo(0);
 
-    // Crear enemigos
-    crearEnemigos();
-
-    // Timer para el cronómetro
     timerSegundo = new QTimer(this);
     connect(timerSegundo, &QTimer::timeout, this, &Nivel1::actualizarTemporizador);
-    timerSegundo->start(1000); // 1 segundo
+    timerSegundo->start(1000);
+    musicaNivel = new QMediaPlayer(this);
+    audioOutput = new QAudioOutput(this);
+    musicaNivel->setAudioOutput(audioOutput);
+
+    QUrl url = QUrl("qrc:/sounds/Gladiator Arena.mp3");
+    musicaNivel->setSource(url);
+    audioOutput->setVolume(0.5);
+    musicaNivel->setLoops(QMediaPlayer::Infinite);
+    musicaNivel->play();
 
     nivelActivo = true;
 }
 
 void Nivel1::cargarFondo()
 {
-    // Cargar imagen de fondo del coliseo
     QPixmap fondo(":/images/Fondo1.jpg");
 
     if (!fondo.isNull()) {
-        // Escalar al tamaño de la escena
-        QPixmap fondoEscalado = fondo.scaled(
+        QPixmap scaled = fondo.scaled(
             escena->width(),
             escena->height(),
             Qt::IgnoreAspectRatio,
             Qt::SmoothTransformation
             );
 
-        escena->setBackgroundBrush(QBrush(fondoEscalado));
+        escena->setBackgroundBrush(scaled);
     } else {
-        // Si no se carga la imagen, poner fondo de color
-        escena->setBackgroundBrush(QBrush(QColor(139, 69, 19))); // Marrón
+        escena->setBackgroundBrush(Qt::black);
     }
 }
 
-void Nivel1::crearEnemigos()
+void Nivel1::generarEnemigo(int tipo)
 {
-    // Crear 2 enemigos normales y 1 fuerte
-    Enemigo *enemigo1 = new Enemigo(false); // Normal
-    enemigo1->setPos(800, 480);
-    escena->addItem(enemigo1);
-    enemigos.append(enemigo1);
+    int escenaAlto = escena->height();
+    Enemigo *enemigo = nullptr;
+    if (tipo == 0) {
+        enemigo = new Enemigo(false);
+        enemigo->setPos(800, escenaAlto);
+    }
+    else if (tipo == 1) {
+        enemigo = new Enemigo(false);
+        enemigo->setPos(1000, escenaAlto);
+    }
+    else if (tipo == 2) {
+        enemigo = new Enemigo(true);
+        enemigo->setPos(1150, escenaAlto);
+    }
+    if (enemigo) {
+        escena->addItem(enemigo);
+        enemigos.append(enemigo);
 
-    Enemigo *enemigo2 = new Enemigo(false); // Normal
-    enemigo2->setPos(950, 480);
-    escena->addItem(enemigo2);
-    enemigos.append(enemigo2);
+        connect(enemigo, &Enemigo::ataque, this, [this, enemigo]() {
+            if (jugador && enemigo && jugador->estaVivo() && enemigo->estaVivo()) {
+                QRectF rectJugador = jugador->getBoundingBox();
+                QRectF rangoAtaqueEnemigo = enemigo->getRangoAtaque();
 
-    Enemigo *enemigoFuerte = new Enemigo(true); // Fuerte (200% vida)
-    enemigoFuerte->setPos(1050, 480);
-    escena->addItem(enemigoFuerte);
-    enemigos.append(enemigoFuerte);
+                if (rangoAtaqueEnemigo.intersects(rectJugador)) {
+                    int danio = enemigo->esFuerteEnemigo() ? 15 : 12;
+                    jugador->recibirDanio(danio);
+                }
+            }
+        });
+        connect(enemigo, &Enemigo::murio, this, [this, enemigo]() {
+            if (enemigos.contains(enemigo)) {
+                escena->removeItem(enemigo);
+                enemigos.removeOne(enemigo);
+                enemigo->deleteLater();
+            }
+        });
+    }
 }
-
 void Nivel1::actualizarJuego()
 {
     if (!nivelActivo) return;
 
-    // Actualizar jugador según teclas presionadas
     if (teclaIzquierda) {
         jugador->moverIzquierda();
     } else if (teclaDerecha) {
@@ -104,7 +150,7 @@ void Nivel1::actualizarJuego()
 
     if (teclaSalto) {
         jugador->saltar();
-        teclaSalto = false; // Para que no salte continuamente
+        teclaSalto = false;
     }
 
     if (teclaAtaque) {
@@ -114,55 +160,74 @@ void Nivel1::actualizarJuego()
 
     jugador->actualizar();
 
-    // Actualizar enemigos
-    for (Enemigo *enemigo : enemigos) {
-        if (enemigo) {
-            enemigo->actualizar(jugador->pos());
+    for (Enemigo *e : enemigos) {
+        if (e){
+            e->actualizar(jugador->pos());
         }
     }
-
-    // Verificar colisiones
     verificarColisiones();
-}
+    bool todosGenerados = (tiempoTranscurrido >= 10);
+    if (todosGenerados) {
+        int enemigosVivos = 0;
+        bool hayEnemigosDesapareciendo = false;
+        for (Enemigo *e : enemigos) {
+            if (e) {
+                if (e && e->estaVivo()) {
+                    enemigosVivos++;
+                }else{
+                    hayEnemigosDesapareciendo = true;
+                }
+            }
+        }
+        if (enemigosVivos == 0 && !hayEnemigosDesapareciendo && enemigos.isEmpty()) {
+            nivelActivo = false;
+            timerJuego->stop();
+            if (timerSegundo) timerSegundo->stop();
 
+            QTimer::singleShot(1000, this, [this]() {
+                finalizarNivel(true);
+            });
+        }
+    }
+}
 void Nivel1::verificarColisiones()
 {
+    if(!jugador || !jugador->estaVivo()) return;
     QRectF rectJugador = jugador->getBoundingBox();
 
-    for (int i = 0; i < enemigos.size(); ++i) {
-        Enemigo *enemigo = enemigos[i];
-        if (!enemigo) continue;
+    for (Enemigo *enemigo : enemigos){
+        if (!enemigo || !enemigo->estaVivo()) continue;
 
         QRectF rectEnemigo = enemigo->getBoundingBox();
-
-        // Verificar colisión
         if (rectJugador.intersects(rectEnemigo)) {
-            // Si el jugador está atacando
-            if (jugador->estaAtacando()) {
-                enemigo->recibirDanio(10);
+            jugador->resolverColision(rectEnemigo);
+        }
+        if (jugador->estaAtacando()) {
+            QRectF rangoAtaqueJugador = jugador->getRangoAtaque();
 
-                // Si el enemigo murió, eliminarlo
+            if (rangoAtaqueJugador.intersects(rectEnemigo)) {
+                int danio = 4;
+                enemigo->recibirDanio(danio);
+
                 if (!enemigo->estaVivo()) {
-                    escena->removeItem(enemigo);
-                    delete enemigo;
-                    enemigos[i] = nullptr;
                     enemigosEliminados++;
                 }
             }
-            // Si el enemigo está atacando
-            else if (enemigo->estaAtacando()) {
-                jugador->recibirDanio(5);
-            }
         }
     }
-
-    // Limpiar punteros nulos
-    enemigos.removeAll(nullptr);
 }
 
 void Nivel1::actualizarTemporizador()
 {
+    if (!nivelActivo) return;
     tiempoRestante--;
+    tiempoTranscurrido++;
+    if (tiempoTranscurrido == 5 && enemigos.size() < 2) {
+        generarEnemigo(1);
+    }
+    else if (tiempoTranscurrido == 10 && enemigos.size() < 3) {
+        generarEnemigo(2);
+    }
 
     int minutos = tiempoRestante / 60;
     int segundos = tiempoRestante % 60;
@@ -172,7 +237,10 @@ void Nivel1::actualizarTemporizador()
                              .arg(segundos, 2, 10, QChar('0')));
 
     if (tiempoRestante <= 0) {
+        nivelActivo = false;
+        timerJuego->stop();
+        timerSegundo->stop();
         finalizarNivel(false);
-        QMessageBox::critical(this, "Tiempo agotado", "Se acabó el tiempo.");
     }
+
 }
