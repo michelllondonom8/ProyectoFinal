@@ -5,7 +5,6 @@
 #include <QMediaPlayer>
 #include <QAudioOutput>
 
-// Forward declarations
 class Nivel;
 
 QT_BEGIN_NAMESPACE

@@ -9,6 +9,7 @@ SOURCES += \
     fisica.cpp \
     gladiador.cpp \
     main.cpp \
+    mainwindow.cpp \
     nivel.cpp \
     nivel1.cpp \
     nivel2.cpp \
@@ -21,6 +22,7 @@ HEADERS += \
     enemigo.h \
     fisica.h \
     gladiador.h \
+    mainwindow.h \
     nivel.h \
     nivel1.h \
     nivel2.h \
@@ -28,7 +30,8 @@ HEADERS += \
     portada.h \
     proyectil.h
 
-FORMS +=
+FORMS += \
+    mainwindow.ui
 
 RESOURCES += \
     resources.qrc

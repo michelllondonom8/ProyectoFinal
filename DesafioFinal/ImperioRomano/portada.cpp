@@ -16,7 +16,7 @@ Portada::Portada(QWidget *parent)
     : QMainWindow(parent),
     ui(new Ui::MainWindow),
     nivelActual(0),
-    nivelActivo(nullptr)  // IMPORTANTE: Inicializar el puntero
+    nivelActivo(nullptr)
 {
     ui->setupUi(this);
 
