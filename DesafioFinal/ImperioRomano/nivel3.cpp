@@ -138,6 +138,10 @@ void Nivel3::disparar()
 
     puedeDisparar = false;
 
+<<<<<<< HEAD
+=======
+    // Obtener punto de lanzamiento
+>>>>>>> f323b5d112ae3d7b56a44b2e4a0e6c38e4912fa4
     double x0, y0;
     catapulta->getPuntoLanzamiento(x0, y0);
 
@@ -145,6 +149,10 @@ void Nivel3::disparar()
     qDebug() << "Ángulo:" << catapulta->getAngulo();
     qDebug() << "Posición inicial:" << x0 << y0;
 
+<<<<<<< HEAD
+=======
+    // Crear proyectil
+>>>>>>> f323b5d112ae3d7b56a44b2e4a0e6c38e4912fa4
     Proyectil *p = new Proyectil(
         x0, y0,
         catapulta->getAngulo(),
@@ -155,6 +163,10 @@ void Nivel3::disparar()
     escena->addItem(p);
     proyectiles.append(p);
 
+<<<<<<< HEAD
+=======
+    // Permitir nuevo disparo
+>>>>>>> f323b5d112ae3d7b56a44b2e4a0e6c38e4912fa4
     QTimer::singleShot(500, this, [this]() {
         puedeDisparar = true;
     });
@@ -164,9 +176,12 @@ void Nivel3::generarEnemigo(bool fuerte)
 {
     Enemigo *enemigo = new Enemigo(fuerte);
     enemigo->setPos(escena->width() + 50, escena->height());
+<<<<<<< HEAD
     QTransform transform;
     transform.scale(-1, 1);
     enemigo->setTransform(transform);
+=======
+>>>>>>> f323b5d112ae3d7b56a44b2e4a0e6c38e4912fa4
     escena->addItem(enemigo);
     enemigos.append(enemigo);
 
