@@ -7,6 +7,8 @@
 #include <QTimer>
 #include <QGraphicsRectItem>
 #include <QSoundEffect>
+#include <QMediaPlayer>
+#include <QAudioOutput>
 
 class Nivel2 : public Nivel
 {
@@ -39,6 +41,8 @@ private:
 
     QSoundEffect fxRock;
     QSoundEffect fxPillar;
+    QMediaPlayer *musicaNivel;
+    QAudioOutput *audioOutput;
 
     void crearFondos();
     void generarObstaculos();

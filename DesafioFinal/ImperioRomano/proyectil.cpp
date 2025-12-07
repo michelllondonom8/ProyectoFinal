@@ -18,11 +18,11 @@ Proyectil::Proyectil(double x0, double y0, double angulo,
 
     if (sprite.isNull()) {
         qDebug() << "Error: No se pudo cargar proyectil.png";
-        sprite = QPixmap(25, 25);
+        sprite = QPixmap(35, 35);
         sprite.fill(QColor(100, 100, 100));
     }
 
-    sprite = sprite.scaled(25, 25, Qt::KeepAspectRatio, Qt::SmoothTransformation);
+    sprite = sprite.scaled(35, 35, Qt::KeepAspectRatio, Qt::SmoothTransformation);
     setPixmap(sprite);
 
     setOffset(-pixmap().width() / 2, -pixmap().height() / 2);

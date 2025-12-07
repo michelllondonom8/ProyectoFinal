@@ -37,7 +37,6 @@ Nivel::~Nivel()
 
 void Nivel::mostrarMensajeVictoria()
 {
-    // Fondo semi-transparente con degradado
     if (!fondoMensaje) {
         fondoMensaje = new QGraphicsRectItem(0, 0, escena->width(), escena->height());
         QLinearGradient gradient(0, 0, 0, escena->height());
@@ -49,7 +48,6 @@ void Nivel::mostrarMensajeVictoria()
     }
     fondoMensaje->setVisible(true);
 
-    // Crear texto de victoria
     if (!mensajeTexto) {
         mensajeTexto = new QGraphicsTextItem();
         mensajeTexto->setZValue(1001);
@@ -66,17 +64,14 @@ void Nivel::mostrarMensajeVictoria()
                 "</div>").arg(textoVictoria)
         );
 
-    // Centrar el texto
     qreal x = (escena->width() - mensajeTexto->boundingRect().width()) / 2;
     qreal y = (escena->height() - mensajeTexto->boundingRect().height()) / 2;
     mensajeTexto->setPos(x, y);
     mensajeTexto->setVisible(true);
 
-    // ANIMACIÓN SIMPLE CON TIMER (sin QPropertyAnimation)
     fondoMensaje->setOpacity(0);
     mensajeTexto->setOpacity(0);
 
-    // Fade in con timer
     QTimer *timer = new QTimer(this);
     qreal *opacity = new qreal(0.0);
 

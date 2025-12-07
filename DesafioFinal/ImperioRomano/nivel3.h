@@ -6,6 +6,8 @@
 #include "Proyectil.h"
 #include <QList>
 #include <QTimer>
+#include <QMediaPlayer>
+#include <QAudioOutput>
 
 class Enemigo;
 
@@ -42,10 +44,12 @@ private:
 
     QTimer *timerGeneracion;
     QTimer *timerSegundo;
+    QMediaPlayer *musicaNivel3;
+    QAudioOutput *audioOutput;
     int contadorGeneracion;
 
-    const double GRAVEDAD = 0.5;
-    const double VELOCIDAD_INICIAL = 12.0;
+    const double GRAVEDAD = 0.4;
+    const double VELOCIDAD_INICIAL = 15.0;
     const double DT = 1.0;
 };
 

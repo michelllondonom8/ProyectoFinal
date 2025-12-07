@@ -3,6 +3,8 @@
 
 #include "nivel.h"
 #include <QList>
+#include <QMediaPlayer>
+#include <QAudioOutput>
 
 class Enemigo;
 
@@ -27,6 +29,8 @@ private:
     QTimer *timerSegundo;
     int enemigosEliminados;
     int tiempoTranscurrido;
+    QMediaPlayer *musicaNivel;
+    QAudioOutput *audioOutput;
 };
 
 #endif // NIVEL1_H

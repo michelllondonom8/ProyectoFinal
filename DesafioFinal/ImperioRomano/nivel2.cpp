@@ -16,7 +16,9 @@ Nivel2::Nivel2(QWidget *parent)
     timerExplosion(new QTimer(this)),
     frameExplosion(0),
     timerSegundo(nullptr),
-    tiempoObjetivo(30)
+    tiempoObjetivo(30),
+    musicaNivel(nullptr),
+    audioOutput(nullptr)
 {
     fxRock.setSource(QUrl("qrc:/sounds/rock_fall_1.wav"));
     fxRock.setLoopCount(1);
@@ -32,6 +34,15 @@ Nivel2::Nivel2(QWidget *parent)
 
 Nivel2::~Nivel2()
 {
+    if (musicaNivel) {
+        musicaNivel->stop();
+        delete musicaNivel;
+        musicaNivel = nullptr;
+    }
+    if (audioOutput) {
+        delete audioOutput;
+        audioOutput = nullptr;
+    }
     qDeleteAll(obstaculos);
     if (timerSegundo) {
         timerSegundo->stop();
@@ -86,6 +97,17 @@ void Nivel2::inicializarNivel()
             iniciarMuerteJugador();
         }
     });
+    musicaNivel = new QMediaPlayer(this);
+    audioOutput = new QAudioOutput(this);
+    musicaNivel->setAudioOutput(audioOutput);
+    QUrl url = QUrl("qrc:/sounds/nivel2musica.mp3");
+
+
+    musicaNivel->setSource(url);
+
+    audioOutput->setVolume(0.45);
+    musicaNivel->setLoops(QMediaPlayer::Infinite);
+    musicaNivel->play();
     timerSegundo = new QTimer(this);
     connect(timerSegundo, &QTimer::timeout, this, &Nivel2::actualizarTemporizador);
     timerSegundo->start(1000);

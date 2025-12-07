@@ -8,7 +8,9 @@ Nivel1::Nivel1(QWidget *parent)
     : Nivel(1, parent),
     timerSegundo(nullptr),
     enemigosEliminados(0),
-    tiempoTranscurrido(0)
+    tiempoTranscurrido(0),
+    musicaNivel(nullptr),
+    audioOutput(nullptr)
 {
     setWindowTitle("Nivel 1 - Coliseo Romano");
     inicializarNivel();
@@ -16,6 +18,15 @@ Nivel1::Nivel1(QWidget *parent)
 
 Nivel1::~Nivel1()
 {
+    if (musicaNivel) {
+        musicaNivel->stop();
+        delete musicaNivel;
+        musicaNivel = nullptr;
+    }
+    if (audioOutput) {
+        delete audioOutput;
+        audioOutput = nullptr;
+    }
     if (timerSegundo) {
         timerSegundo->stop();
         delete timerSegundo;
@@ -54,6 +65,15 @@ void Nivel1::inicializarNivel()
     timerSegundo = new QTimer(this);
     connect(timerSegundo, &QTimer::timeout, this, &Nivel1::actualizarTemporizador);
     timerSegundo->start(1000);
+    musicaNivel = new QMediaPlayer(this);
+    audioOutput = new QAudioOutput(this);
+    musicaNivel->setAudioOutput(audioOutput);
+
+    QUrl url = QUrl("qrc:/sounds/Gladiator Arena.mp3");
+    musicaNivel->setSource(url);
+    audioOutput->setVolume(0.5);
+    musicaNivel->setLoops(QMediaPlayer::Infinite);
+    musicaNivel->play();
 
     nivelActivo = true;
 }

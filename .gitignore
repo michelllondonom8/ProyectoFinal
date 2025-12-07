@@ -1,0 +1,17 @@
+*.o
+*.obj
+*.exe
+*.pro.user
+qrc_*.cpp
+qrc_*.o
+debug/
+release/
+build/
+
+
+
+
+
+
+
+

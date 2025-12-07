@@ -3,7 +3,6 @@ release/enemigo.o
 release/fisica.o
 release/gladiador.o
 release/main.o
-release/mainwindow.o
 release/nivel.o
 release/nivel1.o
 release/nivel2.o
@@ -13,7 +12,6 @@ release/proyectil.o
 release/qrc_resources.o
 release/moc_enemigo.o
 release/moc_gladiador.o
-release/moc_mainwindow.o
 release/moc_nivel.o
 release/moc_nivel1.o
 release/moc_nivel2.o

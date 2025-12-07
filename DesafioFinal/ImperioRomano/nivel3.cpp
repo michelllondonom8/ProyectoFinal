@@ -15,7 +15,9 @@ Nivel3::Nivel3(QWidget *parent)
     enemigosInteligentesEliminados(0),
     timerGeneracion(nullptr),
     timerSegundo(nullptr),
-    contadorGeneracion(0)
+    contadorGeneracion(0),
+    musicaNivel3(nullptr),
+    audioOutput(nullptr)
 {
     tiempoRestante = 120;
     inicializarNivel();
@@ -23,6 +25,13 @@ Nivel3::Nivel3(QWidget *parent)
 
 Nivel3::~Nivel3()
 {
+    if (musicaNivel3) {
+        musicaNivel3->stop();
+        delete musicaNivel3;
+    }
+    if (audioOutput) {
+        delete audioOutput;
+    }
     qDeleteAll(enemigos);
     qDeleteAll(proyectiles);
 
@@ -44,17 +53,18 @@ void Nivel3::inicializarNivel()
     cargarFondo();
     crearCatapulta();
 
-    // Timer para generar enemigos
+    jugador = new Gladiador();
+    jugador->setPos(60, escena->height());
+    escena->addItem(jugador);
+
     timerGeneracion = new QTimer(this);
     connect(timerGeneracion, &QTimer::timeout, this, [this]() {
         contadorGeneracion++;
 
-        // 7 enemigos normales cada 3 segundos
         if (enemigosNormalesGenerados < 7 && contadorGeneracion % 180 == 0) {
             generarEnemigo(false);
             enemigosNormalesGenerados++;
         }
-        // 3 enemigos inteligentes después
         else if (enemigosNormalesGenerados >= 7 &&
                  enemigosInteligentesGenerados < 3 &&
                  contadorGeneracion % 240 == 0) {
@@ -64,7 +74,6 @@ void Nivel3::inicializarNivel()
     });
     timerGeneracion->start(16);
 
-    // Timer de segundos
     timerSegundo = new QTimer(this);
     connect(timerSegundo, &QTimer::timeout, this, [this]() {
         if (!nivelActivo) return;
@@ -87,6 +96,15 @@ void Nivel3::inicializarNivel()
     timerSegundo->start(1000);
 
     labelTiempo->setText("Tiempo: 2:00");
+    musicaNivel3 = new QMediaPlayer(this);
+    audioOutput = new QAudioOutput(this);
+    musicaNivel3->setAudioOutput(audioOutput);
+
+    QUrl url = QUrl("qrc:/sounds/nivel3musica.mp3");
+    musicaNivel3->setSource(url);
+    audioOutput->setVolume(0.6);
+    musicaNivel3->setLoops(QMediaPlayer::Infinite);
+    musicaNivel3->play();
     nivelActivo = true;
 }
 
@@ -105,8 +123,10 @@ void Nivel3::cargarFondo()
 
 void Nivel3::crearCatapulta()
 {
-    double x = 150;
-    double y = escena->height() - 50;
+    double x = 180;
+    double y = escena->height();
+
+    qDebug() << "Creando catapulta - Escena height:" << escena->height();
 
     catapulta = new Catapulta(x, y);
     escena->addItem(catapulta);
@@ -117,10 +137,13 @@ void Nivel3::disparar()
     if (!puedeDisparar || !nivelActivo || !catapulta) return;
 
     puedeDisparar = false;
-    catapulta->animarDisparo();
 
     double x0, y0;
     catapulta->getPuntoLanzamiento(x0, y0);
+
+    qDebug() << "=== DISPARANDO ===";
+    qDebug() << "Ángulo:" << catapulta->getAngulo();
+    qDebug() << "Posición inicial:" << x0 << y0;
 
     Proyectil *p = new Proyectil(
         x0, y0,
@@ -132,10 +155,7 @@ void Nivel3::disparar()
     escena->addItem(p);
     proyectiles.append(p);
 
-    qDebug() << "Disparo - Ángulo:" << catapulta->getAngulo();
-
-    QTimer::singleShot(300, this, [this]() {
-        if (catapulta) catapulta->restaurarPosicion();
+    QTimer::singleShot(500, this, [this]() {
         puedeDisparar = true;
     });
 }
@@ -144,6 +164,9 @@ void Nivel3::generarEnemigo(bool fuerte)
 {
     Enemigo *enemigo = new Enemigo(fuerte);
     enemigo->setPos(escena->width() + 50, escena->height());
+    QTransform transform;
+    transform.scale(-1, 1);
+    enemigo->setTransform(transform);
     escena->addItem(enemigo);
     enemigos.append(enemigo);
 
@@ -208,7 +231,7 @@ void Nivel3::verificarColisiones()
     for (Proyectil *p : proyectiles) {
         if (!p->estaActivo()) continue;
 
-        QRectF rectProyectil(p->getX() - 12, p->getY() - 12, 25, 25);
+        QRectF rectProyectil(p->getX() - 17, p->getY() - 17, 45, 45);
 
         for (Enemigo *e : enemigos) {
             if (!e || !e->estaVivo()) continue;
@@ -229,12 +252,11 @@ void Nivel3::actualizarJuego()
 {
     if (!nivelActivo) return;
 
-    // Control de ángulo
     if (teclaIzquierda && catapulta) {
-        catapulta->setAngulo(catapulta->getAngulo() + 0.5);
+        catapulta->setAngulo(catapulta->getAngulo() + 1.0);
     }
     else if (teclaDerecha && catapulta) {
-        catapulta->setAngulo(catapulta->getAngulo() - 0.5);
+        catapulta->setAngulo(catapulta->getAngulo() - 1.0);
     }
 
     if (teclaAtaque) {
@@ -246,7 +268,6 @@ void Nivel3::actualizarJuego()
     actualizarEnemigos();
     verificarColisiones();
 
-    // Victoria
     if (enemigosNormalesEliminados >= 7 && enemigosInteligentesEliminados >= 3) {
         bool hayVivos = false;
         for (Enemigo *e : enemigos) {
